@@ -12,7 +12,7 @@ import pandas as pd
 import plotly.express as px
 
 # Incorporate data
-df = pd.read_csv("Electricity (1).csv")
+df = pd.read_csv("./Electricity.csv")
 df.year = df.year.apply(str)
 
 # Initialize the app
