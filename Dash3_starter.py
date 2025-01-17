@@ -336,7 +336,7 @@ def update_region_chart(selected_year):
         xaxis_title="Region",
         yaxis_title="Average kWh per Account",
         template="plotly_white",
-        xaxis={"tickangle": -45},
+        # xaxis={"tickangle": -45},
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
         height=400,
@@ -404,7 +404,7 @@ def update_line_chart(selected_region, selected_year):
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
         height=400,
-        xaxis={"tickangle": -45},  # Angle the month names for better readability
+        # xaxis={"tickangle": -45},  # Angle the month names for better readability
     )
 
     return fig
@@ -504,7 +504,7 @@ def update_area_comparison(selected_region, selected_year, selected_dwelling):
         showlegend=True,
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
-        xaxis={"tickangle": -45},  # Angle the month names for better readability
+        # xaxis={"tickangle": -},  # Angle the month names for better readability
     )
 
     return fig
