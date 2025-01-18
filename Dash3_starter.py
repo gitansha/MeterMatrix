@@ -6,66 +6,20 @@ Created on Sat Nov 30 14:31:04 2024
 https://dash.plotly.com/tutorial
 """
 
-# # Import packages
-# from dash import Dash, html, dash_table, dcc, callback, Output, Input
-# import pandas as pd
-# import plotly.express as px
-
-# # Incorporate data
-# df = pd.read_csv("./Electricity.csv")
-# df.year = df.year.apply(str)
-
-# # Initialize the app
-# app = Dash()
-
-# # App layout
-# app.layout = [
-#     html.Div(children="My First App with Data, Graph, and Controls"),
-#     html.Hr(),
-#     dcc.RadioItems(
-#         options=["year", "Region", "dwelling_type"],
-#         value="year",
-#         id="control-and-radio-item",
-#     ),
-#     dash_table.DataTable(data=df.to_dict("records"), page_size=6),
-#     dcc.Graph(figure={}, id="controls-and-graph"),
-# ]
-
-
-# # Add controls to build the interaction
-# @callback(
-#     Output(component_id="controls-and-graph", component_property="figure"),
-#     Input(component_id="control-and-radio-item", component_property="value"),
-# )
-# def update_graph(col_chosen):
-#     fig = px.histogram(df, x=col_chosen, y="kwh_per_acc", histfunc="avg")
-#     return fig
-
-
-# # Run the app
-# if __name__ == "__main__":
-#     app.run(debug=True)
-
-
 from dash import Dash, html, dcc, callback, Output, Input, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 import pandas as pd
 import calendar
-from datetime import datetime
 
-# Initialize the app
+
 app = Dash(__name__)
-
-# Assume df is your dataframe
 df = pd.read_csv("./Electricity.csv")
 df.year = df.year.astype(str)
 
-# Custom CSS for better styling
 app.layout = html.Div(
     [
-        # Header section with title and description
         html.Div(
             [
                 html.H1(
@@ -92,7 +46,6 @@ app.layout = html.Div(
                 "marginBottom": "20px",
             },
         ),
-        # Filters section with clear labels
         html.Div(
             [
                 html.H3(
@@ -176,7 +129,7 @@ app.layout = html.Div(
                 "marginBottom": "20px",
             },
         ),
-        # First row of visualizations
+        # Visualizations
         html.Div(
             [
                 # Regional Analysis Card
@@ -261,7 +214,7 @@ app.layout = html.Div(
             ],
             style={"marginBottom": "20px"},
         ),
-        # Statistics Table Section
+        # Table Section
         html.Div(
             [
                 html.H3("Detailed Statistics", style={"color": "#2c3e50"}),
@@ -304,7 +257,7 @@ app.layout = html.Div(
 
 
 def get_month_name(month_num):
-    """Convert month number to month name"""
+    """To convert month number to names"""
     return calendar.month_abbr[int(month_num)]
 
 
@@ -336,7 +289,6 @@ def update_region_chart(selected_year):
         xaxis_title="Region",
         yaxis_title="Average kWh per Account",
         template="plotly_white",
-        # xaxis={"tickangle": -45},
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
         height=400,
@@ -385,7 +337,6 @@ def update_line_chart(selected_region, selected_year):
     if selected_year:
         title += f" ({selected_year})"
 
-    # Add note about missing months if any
     if missing_months:
         missing_months_names = [get_month_name(m) for m in sorted(missing_months)]
         title += f'<br><span style="font-size: 12px; color: #7f8c8d">No data available for: {", ".join(missing_months_names)}</span>'
@@ -404,13 +355,11 @@ def update_line_chart(selected_region, selected_year):
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
         height=400,
-        # xaxis={"tickangle": -45},  # Angle the month names for better readability
     )
 
     return fig
 
 
-# Update the area comparison callback
 @callback(
     Output("area-comparison-chart", "figure"),
     [
@@ -430,25 +379,17 @@ def update_area_comparison(selected_region, selected_year, selected_dwelling):
         filtered_df = filtered_df[filtered_df["dwelling_type"] == selected_dwelling]
 
     fig = go.Figure()
-
-    # Color palette for different areas
     colors = px.colors.qualitative.Set3
-
-    # Track available months across all areas
     all_available_months = set()
-
-    # First pass to collect all available months
     areas = filtered_df["dwelling_type"].unique()
     for area in areas:
         area_data = filtered_df[filtered_df["dwelling_type"] == area]
         months_in_area = set(area_data["month"])
         all_available_months.update(months_in_area)
 
-    # Convert to month names for display
     all_months = set(range(1, 13))
     missing_months = all_months - all_available_months
 
-    # Second pass to create traces
     for i, area in enumerate(areas):
         area_data = filtered_df[filtered_df["dwelling_type"] == area]
         monthly_avg = area_data.groupby("month")["kwh_per_acc"].mean().reset_index()
@@ -477,7 +418,6 @@ def update_area_comparison(selected_region, selected_year, selected_dwelling):
     if selected_year:
         title += f" ({selected_year})"
 
-    # Add note about missing months if any
     if missing_months:
         missing_months_names = [get_month_name(m) for m in sorted(missing_months)]
         title += f'<br><span style="font-size: 12px; color: #7f8c8d">No data available for: {", ".join(missing_months_names)}</span>'
@@ -504,7 +444,6 @@ def update_area_comparison(selected_region, selected_year, selected_dwelling):
         showlegend=True,
         hoverlabel={"bgcolor": "white"},
         plot_bgcolor="rgba(0,0,0,0)",
-        # xaxis={"tickangle": -},  # Angle the month names for better readability
     )
 
     return fig
