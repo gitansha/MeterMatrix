@@ -312,7 +312,7 @@ def update_line_chart(selected_region, selected_year):
     monthly_avg = filtered_df.groupby("month")["kwh_per_acc"].mean().reset_index()
     monthly_avg["month_name"] = monthly_avg["month"].apply(get_month_name)
 
-    # Check if we have data for all months
+    # Check data for all months
     available_months = set(monthly_avg["month"])
     all_months = set(range(1, 13))
     missing_months = all_months - available_months
