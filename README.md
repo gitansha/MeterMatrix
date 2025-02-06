@@ -11,4 +11,6 @@
 4. To check if you got the required poackages, do a `pip list`.
 5. Now run the file normally using python ./file_name.py
 
+6. tyhis is jhust fr texsting
+
 
