@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template_string, url_for
 import requests
 import random
 import datetime
@@ -17,6 +17,10 @@ class Log:
 
 logs = []
 
+
+# Logging Function:
+# Please use this funtion to add the logging details
+# see the usage in get_meter_id function
 def log_request(request_type, details):
     log = Log(datetime.datetime.now(), request_type, details)
     logs.append(log)
@@ -89,7 +93,20 @@ def get_meter_id():
                 "add_meter_reading",
                 f"Meter reading account added for user {user} account {meter_id}.",
             )
-            return f"Hi {user}, your login ID is {meter_id:d}.<br> Use this ID to view your electricity consumption."
+            return render_template_string(
+                """
+                <p>Hi {{ user }}, your login ID is {{ meter_id }}.</p>
+                <p>You will be redirected to main page in 10 seconds.</p>
+                <p>Use this id to view your electricity consumption.</p>
+                <script>
+                    setTimeout(function() {
+                        window.location.href = "{{ url_for('landing') }}";
+                    }, 10000);  // Redirect after 10 seconds
+                </script>
+            """,
+                user=user,
+                meter_id=meter_id,
+            )
 
         else:
             log_request(
@@ -105,9 +122,12 @@ def get_meter_id():
     return "Invalid request method."
 
 
-@app.route("/profile", methods=["POST"]) # From Landing
-def retrieve(meterid):
-    pass
+@app.route("/profile")
+#    , methods=["POST"])
+def profile():
+    user = request.args.get("user")
+    meter_id = request.args.get("meter_id")
+    return f"Hi {user}, your login ID is {meter_id}. Use this ID to view your electricity consumption."
 
 
 @app.route("/profile/<meterid>", methods=["GET"])
@@ -120,9 +140,9 @@ def consumption(meterid):
     pass
 
 
-# @app.route("/profile/<meterid>/consumption", methods=["GET"])  # add the ?period thing
-# def consumption(meterid):
-#     pass
+@app.route("/profile", methods=["POST"])
+def retrieve(meterid):
+    pass
 
 
 @app.route("/profile/<meterid>/consumption/download", methods=["GET"])
@@ -136,4 +156,4 @@ def meterfeed():
 
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=5000, debug=False)
+    app.run(host="localhost", port=5000, debug=True)
