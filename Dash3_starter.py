@@ -31,7 +31,7 @@ app.layout = html.Div(
                     },
                 ),
                 html.P(
-                    "Analyze electricity consumption patterns across different regions and dwelling types in Singapore",
+                    "Electricity Consumption in Singapore",
                     style={
                         "textAlign": "center",
                         "color": "#7f8c8d",
@@ -379,7 +379,7 @@ def update_area_comparison(selected_region, selected_year, selected_dwelling):
         filtered_df = filtered_df[filtered_df["dwelling_type"] == selected_dwelling]
 
     fig = go.Figure()
-    colors = px.colors.qualitative.Set3
+    colors = px.colors.qualitative.T10
     all_available_months = set()
     areas = filtered_df["dwelling_type"].unique()
     for area in areas:
