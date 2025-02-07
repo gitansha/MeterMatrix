@@ -1,11 +1,29 @@
 from flask import Flask, jsonify, request
 import requests
 import random
+import datetime
 
 app = Flask(__name__)
 
-new_user_list = []
+new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
+
+
+class Log:
+    def __init__(self, timestamp, request_type, details):
+        self.timestamp = timestamp
+        self.request_type = request_type
+        self.details = details
+
+
+logs = []
+
+
+def log_request(request_type, details):
+    log = Log(datetime.datetime.now(), request_type, details)
+    logs.append(log)
+    with open("logs.txt", "a") as log_file:
+        log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
 
 
 @app.route("/", methods=["GET"])
@@ -44,11 +62,23 @@ def get_meter_id():
                 meter_id = random.randint(1, 1000000000)
             meter_id_list.add(meter_id)
             # TODO: Add a button which redirects to the electricity consumption page or login page
+            log_request(
+                "add_meter_reading",
+                f"Meter reading account added for user {user} account {meter_id}.",
+            )
             return f"Hi {user}, your login ID is {meter_id:d}.<br> Use this ID to view your electricity consumption."
+
         else:
+            log_request(
+                "ERROR : in add_meter_reading",
+                f"Unable to fetch the name from the form data.",
+            )
             return "Name not found in form data."
+
     elif request.method == "GET":
+        log_request("ERROR : in add_meter_reading", f"Request method recieved as GET")
         return "Please submit the form to register."
+    log_request("ERROR : INVALID REQUEST METHOD")
     return "Invalid request method."
 
 
