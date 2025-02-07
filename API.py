@@ -8,16 +8,14 @@ app = Flask(__name__)
 new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
-
+# Logging Codes
 class Log:
     def __init__(self, timestamp, request_type, details):
         self.timestamp = timestamp
         self.request_type = request_type
         self.details = details
 
-
 logs = []
-
 
 def log_request(request_type, details):
     log = Log(datetime.datetime.now(), request_type, details)
@@ -25,9 +23,34 @@ def log_request(request_type, details):
     with open("logs.txt", "a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
 
+# Meter Data Codes
+class meterdata:
+    def __init__(self, timestamp, consumption):
+        self.timestamp = timestamp
+        self.consumption = consumption
 
+# Flushed daily to txt file
+# {meterid: [meterdata]}
+meter_readings = {}
+
+# access_type either "add" or "backup"
+def meterlogging(access_type, meter_id, meter_data = None):
+    if access_type == "add":
+        if meter_id in meter_readings:
+            meter_readings[meter_id].append(meter_data)
+            log_request('Incoming meter reading', f"Meter reading added for account {meter_id}.")
+        else:
+            meter_readings[meter_id] = [meter_data]
+            log_request('Incoming first meter reading', f"First meter reading added for account {meter_id}.")
+
+    elif access_type == "backup":
+        # TODO
+        pass
+
+# APIs
 @app.route("/", methods=["GET"])
 def landing():
+    # TODO Form to lead to /profile which takes in user meterid
     return "Created so that server will run. Needs a lot of modifications"
 
 
@@ -36,7 +59,7 @@ def register():
     return """
 <html>
     <div id="rightdiv">
-       Please enter your name to enter to register for the meter.
+       Please enter your name to register for the meter.
        <form action="/register-success" method="post">
               <label for="name">
                 <strong>Name</strong>
@@ -54,7 +77,7 @@ def get_meter_id():
     print(request.method)
     if request.method == "POST":
         print("Form data:", request.form)
-        if "name" in request.form:
+        if "name" in request.form: # Is there a scenario where "name" will not be present if the form input for name is required in /register?
             user = request.form["name"]
             new_user_list.append(user)
             meter_id = random.randint(1, 1000000000)  # Update this as needed
@@ -75,14 +98,14 @@ def get_meter_id():
             )
             return "Name not found in form data."
 
-    elif request.method == "GET":
+    elif request.method == "GET": # How will this scenario happen?
         log_request("ERROR : in add_meter_reading", f"Request method recieved as GET")
         return "Please submit the form to register."
     log_request("ERROR : INVALID REQUEST METHOD")
     return "Invalid request method."
 
 
-@app.route("/profile", methods=["POST"])
+@app.route("/profile", methods=["POST"]) # From Landing
 def retrieve(meterid):
     pass
 
