@@ -64,32 +64,34 @@ The Recovery JSON is a backup file for the daily data structure described in sec
 Same format as 1.2.
 
 ### 1.4 Master Database
-The master database contains all the data from all the meters, including the meter ID, energy consumption for each day, and the previous day's half-hourly consumption data (structured in the same way as described in section 1.2.). We store the previous day's half-hourly consumption data in case the user needs to query it.
+The master database contains all the data from all the meters, including the meter ID, energy consumption for each day, and the previous day's half-hourly consumption data (structured in the same way as described in section 1.2.). We store the previous day's half-hourly consumption data in case the user needs to query it. Dates are acting as keys for single value consumptions.
 
 JSON file (text file storing data)
 ```json
-{
-  "999999999": {
+
+{  
+  {"name": "Koh Chin Chy",
+    "meter_id":999999999,
+    "fin_no":"A3389127i",
     "previous_day": {
       "00:31": 4.50,
       "23:31": 4.35
     },
-    "day_wise_consumption": {
       "2025-02-07": 161.50,
       "2025-02-06": 157.50
-    }
   },
-  "555555555": {
+   {"name" : "Cemex is lobe <3",
+    "meter_id":555555555,
+    "fin_no":"A1234567I",
     "previous_day": {
       "00:31": 4.50,
       "23:31": 4.35
     },
-    "day_wise_consumption": {
+    
       "2025-02-07": 161.50,
       "2025-02-06": 157.50
     }
   }
-}
 ```
 
 ---
