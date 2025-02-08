@@ -1,5 +1,19 @@
 # MeterMatrix
 
+## Table of Contents
+
+1. [Data Structures](#1-data-structures)
+   1. [Meter Reading (JSON packet)](#11-meter-reading-json-packet)
+   2. [Daily In Memory Data](#12-daily-in-memory-data)
+   3. [Daily Recovery JSON for 1.2](#13-daily-recovery-json-for-12)
+   4. [Master Database](#14-master-database)
+2. [Data Collection, Storage, and Backup Process](#2-data-collection-storage-and-backup-process)
+   1. [Every Half an Hour](#21-every-half-an-hour)
+   2. [Every 2 Hours](#22-every-2-hours)
+   3. [End of the Day (23:31 to 23:59)](#23-end-of-the-day-2331-to-2359)
+
+---
+
 ## 1 Data Structures
 
 ### 1.1 Meter Reading (JSON packet)
@@ -43,7 +57,7 @@ Python Nested Dictionary
 }
 ```
 
-### 1.3 Recovery JSON for 1.2
+### 1.3 Daily Recovery JSON for 1.2
 The Recovery JSON is a backup file for the daily data structure described in section 1.2. This file is updated every two hours as a safeguard against data loss.
 
 Same format as 1.2.
@@ -76,6 +90,31 @@ JSON file (text file storing data)
   }
 }
 ```
+
+---
+
+
+## 2 Data Collection, Storage, and Backup Process
+
+### 2.1 Every Half an Hour
+For every meter:
+1. The API receives a JSON packet (refer to data structure 1.1) and stores it in a JSON packet class.
+2. This JSON packet is then added to the Daily In Memory Data (data structure 1.2).
+
+### 2.2 Every 2 Hours
+1. The Daily In Memory Data (data structure 1.2) is flushed into the Daily Recovery JSON (data structure 1.3) as a backup.
+
+### 2.3 End of the Day (23:31 to 23:59)
+This is done to prepare our API for the next day.
+
+For each meter,
+1. Aggregate the day's consumption using the Daily In Memory Data (data structure 1.2).
+2. Update the Master Database (data structure 1.4) with the current day's data and the aggregated sum from step 1.
+
+Overall,
+1. The Daily In Memory Data (data structure 1.2) is then flushed into the Master Database's previous_day field (data structure 1.4), resetting it for the next day's data collection.
+
+
 
 
 
