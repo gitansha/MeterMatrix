@@ -29,12 +29,11 @@ Python Nested Dictionary
 ```json
 {
   "<meter_id_1>": {
-    "00:31": <reading_kWh>,
-    "23:31": <reading_kWh>,
+    "00:31": "<reading_kWh>",
+    "23:31": "<reading_kWh>",
   },
   "999999999": {
     "00:31": 4.50,
-    ...
     "23:31": 4.35
   },
   "555555555": {
