@@ -83,7 +83,6 @@ def get_meter_id():
                 user=user,
                 meter_id=meter_id,
             )
-
         else:
             log_request(
                 "ERROR : in add_meter_reading",
