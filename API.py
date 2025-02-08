@@ -26,7 +26,7 @@ logs = []
 def log_request(request_type, details):
     log = Log(datetime.datetime.now(), request_type, details)
     logs.append(log)
-    with open("logs.txt", "a") as log_file:
+    with open("./logs/logs.txt", "a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
 
 
