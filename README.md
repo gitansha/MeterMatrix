@@ -11,6 +11,7 @@
    1. [Every Half an Hour](#21-every-half-an-hour)
    2. [Every 2 Hours](#22-every-2-hours)
    3. [End of the Day (23:31 to 23:59)](#23-end-of-the-day-2331-to-2359)
+3. [API Documentation](#3-api-documentation)
 
 ---
 
@@ -109,10 +110,26 @@ This is done to prepare our API for the next day.
 
 For each meter,
 1. Aggregate the day's consumption using the Daily In Memory Data (data structure 1.2).
-2. Update the Master Database (data structure 1.4) with the current day's data and the aggregated sum from step 1.
+2. Update the Master Database (data structure 1.4) with the current day's date and the aggregated sum from step 1.
 
 Overall,
 1. The Daily In Memory Data (data structure 1.2) is then flushed into the Master Database's previous_day field (data structure 1.4), resetting it for the next day's data collection.
+
+---
+
+## 3 API Documentation
+
+| **Route**                                          | **Description**                                                                                   |
+|----------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `/`                                                | Landing page which shows options between new user or existing user.                               |
+| `/register`                                        | Add a new user.                                                                                  |
+| `/profile`                                         | Existing user enters their meter ID.                                                              |
+| `/profile/{meterId}`                               | Landing page for that particular meter ID.                                                        |
+| `/profile/{meterId}/consumption`                   | Displays consumption details for the meter ID.                                                     |
+| `/profile/{meterId}/consumption?period=...`        | Query data by time period (e.g., `prev-hr`, `current-day`, `current-week`, `current-month`, `prev-month`) and also show graphs. |
+| `/profile/{meterId}/consumption/download`          | User can download their bill for the selected time period.                                        |
+| `/meter`                                           | Meter accesses this API and sends a JSON packet consisting of its ID, consumption in the previous half hour, and timestamp. |
+| **Example:** `/profile/999-999-999`                 | This is an example of how to query a specific meter's profile.                                    |
 
 
 
