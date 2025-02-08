@@ -9,8 +9,9 @@ A packet arriving at `00:31` indicates electricity consumption from `00:00` to `
 
 Our API expects the following format and will be coded accordingly.
 
-```json
 JSON file (text file storing data)
+
+```json
 {
   "id": 999999999,
   "timestamp": "2025-02-08T00:31:00Z",
@@ -24,9 +25,8 @@ This data structure (nested dictionary) is maintained by our `API.py` program. I
 At the end of the day, this data structure is used to update our master database, which contains all readings from all meters across all days. Once the data is updated to the master database, it gets refreshed (blanked) to store the next day's data.
 
 Each meter will have 47 readings a day.
-
-```json
 Python Nested Dictionary
+```json
 {
   "<meter_id_1>": {
     "00:31": <reading_kWh>,
@@ -39,7 +39,6 @@ Python Nested Dictionary
   },
   "555555555": {
     "00:31": 4.50,
-    ...
     "23:31": 4.35
   }
 }
@@ -52,13 +51,13 @@ Same format as 1.2.
 
 ### 1.4 Master Database
 The master database contains all the data from all the meters, including the meter ID, energy consumption for each day, and the previous day's half-hourly consumption data (structured in the same way as described in section 1.2.). We store the previous day's half-hourly consumption data in case the user needs to query it.
-```json
+
 JSON file (text file storing data)
+```json
 {
   "999999999": {
     "previous_day": {
       "00:31": 4.50,
-      ...
       "23:31": 4.35
     },
     "day_wise_consumption": {
@@ -69,7 +68,6 @@ JSON file (text file storing data)
   "555555555": {
     "previous_day": {
       "00:31": 4.50,
-      ...
       "23:31": 4.35
     },
     "day_wise_consumption": {
