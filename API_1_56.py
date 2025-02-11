@@ -137,6 +137,15 @@ def profile_home(meterid):
     '''
 
 @app.route('/profile/<meterid>/consumption/<time_period>', methods=['GET'])
+
+# meter id
+# time period
+# dataframe
+# last half n hr, today} dailyDB_df
+# aash} masterDB
+# filter dailyDB_df according to meter id and time period} show the table and graph
+# def display(meter_id, time+period, dataframe):
+# show table and graph
 def get_consumption(meterid, time_period):
     # Example data based on the time period (you can replace this with actual logic)
     consumption_data = {
