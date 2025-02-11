@@ -13,6 +13,12 @@ app = Flask(__name__)
 new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
+# Function to get users from user.json
+def load_users():
+    with open('users.json', 'r') as file:
+        data = json.load(file)
+    return data['users']  # Return list of users
+
 ############################## Logging Code ##############################
 
 class Log:
@@ -149,14 +155,70 @@ def get_meter_id():
     return "Invalid request method."
 
 
-@app.route("/profile")
-def retrieve(meterid):
-    pass
+@app.route('/profile', methods=['GET', 'POST'])
+def user_login():
+    if request.method == 'GET':
+        # If it's a GET request, render the login form
+        return """
+            <html>
+                <body>
+                    <h2>User Login</h2>
+                    <form method="POST" action="/profile">
+                        <label for="meter_id">Enter your Meter ID:</label>
+                        <input type="text" id="meter_id" name="meter_id" required>
+                        <input type="submit" value="Login">
+                    </form>
+                </body>
+            </html>
+        """
+    elif request.method == 'POST':
+        # If it's a POST request, process the login
+        meter_id = request.form.get('meter_id')
+        
+        # Load users from the users.json file
+        users = load_users()
+        
+        # Check if the meter_id exists in the list of users
+        user_found = None
+        for user in users:
+            if user['meter_id'] == int(meter_id):  # Match the meter_id
+                user_found = user
+                break
+        
+        if user_found:
+    # If user found, redirect to the profile page
+            return render_template_string("""
+                <script>
+                window.location.href = '/profile/{{ meter_id }}';
+                </script>
+             """, meter_id=meter_id)
+        else:
+            # Error message and option to return to the login page
+            return render_template_string("""
+                <p>Error: User not found. Please check your meter ID and try again.</p>
+                <a href="{{ url_for('user_login') }}">Back to login</a>
+            """)
 
 
 @app.route("/profile/<meterid>", methods=["GET"])
-def userlanding(meterid):
-    pass
+def user_profile(meterid):
+    # Load users from the users.json file
+    users = load_users()
+    
+    # Find the user by meter_id
+    for user in users:
+        if user['meter_id'] == int(meterid):  # Match the meter_id
+            # Return the profile page with the button leading to consumption page
+            return render_template_string("""
+                <h1>Welcome, {{ name }}!</h1>
+                <p>Your Meter ID is: {{ meter_id }}</p>
+                <form method="get" action="/profile/{{ meter_id }}/consumption">
+                    <input type="submit" value="Go to Consumption">
+                </form>
+            """, name=user['name'], meter_id=meterid)
+    
+    # If the user is not found (in case something goes wrong)
+    return f"Error: User with Meter ID {meterid} not found."
 
 
 @app.route("/profile/<meterid>/consumption", methods=["GET"])
