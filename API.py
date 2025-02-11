@@ -1,15 +1,20 @@
+############################## Imports ##############################
+
 from flask import Flask, jsonify, request, render_template_string, url_for
-import requests
 import random
 import datetime
+import json
+from pathlib import Path
 
 app = Flask(__name__)
+
+############################## New User Code ##############################
 
 new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
+############################## Logging Code ##############################
 
-# Logging Codes
 class Log:
     def __init__(self, timestamp, request_type, details):
         self.timestamp = timestamp
@@ -19,6 +24,8 @@ class Log:
 
 logs = []
 
+log_dir = Path("./logs")
+log_file_path = log_dir/"logs.txt"
 
 # Logging Function:
 # Please use this funtion to add the logging details
@@ -26,11 +33,17 @@ logs = []
 def log_request(request_type, details):
     log = Log(datetime.datetime.now(), request_type, details)
     logs.append(log)
-    with open("./logs/logs.txt", "a") as log_file:
+
+    if not log_file_path.exists():
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file_path.touch()
+
+    with log_file_path.open("a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
+    
 
+############################## Meter Data Code ##############################
 
-# Meter Data Codes
 class meterdata:
     def __init__(self, timestamp, consumption):
         self.timestamp = timestamp
@@ -38,7 +51,9 @@ class meterdata:
 
 
 # Flushed daily to txt file
-# {meterid: [meterdata]}
+# Backup system reads from this every 2 hours
+# format: {meterid1: [meterdata1, meterdata2, ...],
+#          meterid2: [meterdata1, meterdata2, ...]}
 meter_readings = {}
 
 
@@ -61,8 +76,8 @@ def meterlogging(access_type, meter_id, meter_data=None):
         # TODO
         pass
 
+############################## APIs ##############################
 
-# APIs
 @app.route("/", methods=["GET"])
 def landing():
     # TODO Form to lead to /profile which takes in user meterid
@@ -150,7 +165,7 @@ def consumption(meterid):
 
 
 @app.route("/profile", methods=["POST"])
-def retrieve(meterid):
+def profile_retrieval(meterid):
     pass
 
 
@@ -161,8 +176,18 @@ def downloadconsumption():
 
 @app.route("/meter", methods=["POST"])
 def meterfeed():
-    pass
+    meterdata = request.get_json()
+    print(meterdata)
+    if meterdata is None:
+        log_request("Failed Meter Reading Request", "Missing meter reading data")
+        return "Missing meter data"
+    
+    else:
+        meterlogging("add", meterdata["id"], meterdata["reading_kWh"])
+        return "Meter successfully logged"
 
+
+############################## Runs the file ##############################
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000, debug=True)
