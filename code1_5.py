@@ -57,7 +57,7 @@ def profile_home(meterid):
         <select id="dropdown" onchange="handleButtonClick(this.value)">
             <option value="">Select</option>
             <option value="prev_hr">Previous Half Hour</option>
-            <option value="today">Today</option>
+            <option value="today" selected>Today</option>
             <option value="this_week">This Week</option>
             <option value="this_month">This Month</option>
             <option value="last_month">Last Month</option>
