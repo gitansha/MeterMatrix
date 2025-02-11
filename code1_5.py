@@ -1,5 +1,24 @@
 from flask import Flask, render_template_string, jsonify, redirect, url_for, request
 
+import pandas as pd
+#in memory daily data (to be replaced by actual, test for now)
+# df format
+#           999999999  555555555  111111111  222222222  333333333
+# 00:31       4.50       4.50       4.40       4.35       4.48
+# 01:01       4.55       4.55       4.45       4.40       4.53
+# 01:31       4.60       4.60       4.48       4.45       4.56
+dailyDB = {
+}
+dailyDB_df = pd.DataFrame(dailyDB)
+print(dailyDB_df)
+
+# reading master database
+# format
+# columns: name, meter_id, fin_no, previous_day(dict of 47 values with timestamps), previous days
+#   name   meter_id     fin_no                                       previous_day  ...     2024-12-17  2024-12-16  2024-12-15  2024-12-14
+#0 Aashima  999999999  A3389127I  {'00:31': 8.33, '00:01': 4.73, '01:31': 8.7, '...  ...      250.18      121.27      266.34      198.4
+masterDB_df = pd.read_json('testing_data/masterDB.json')
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -31,6 +50,8 @@ def profile_redirect():
         return redirect(url_for('profile_home', meterid=meterid))
     return "Meter ID is required."
 
+# default shows today
+# need to show table and graph
 @app.route('/profile/<meterid>/consumption/', methods=['GET'])
 def profile_home(meterid):
     return f'''
