@@ -149,9 +149,9 @@ def consumption(meterid):
     pass
 
 
-@app.route("/profile", methods=["POST"])
-def retrieve(meterid):
-    pass
+# @app.route("/profile", methods=["POST"])
+# def retrieve(meterid):
+#     pass
 
 
 @app.route("/profile/<meterid>/consumption/download", methods=["GET"])
