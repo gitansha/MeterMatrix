@@ -117,6 +117,9 @@ def profile_home(meterid):
                     if (value === 'prev_hr') {{
                         // Redirect to the new route for the previous half hour
                         window.location.href = `/profile/{meterid}/consumption/last_half_hour`;
+                    }} else if (value === 'today') {{
+                        // Redirect to the new route for the previous half hour
+                        window.location.href = `/profile/{meterid}/consumption/today`;
                     }} else {{
                         // Handle other values, like fetching data via API
                         fetch(`/profile/{meterid}/consumption/${{value}}`)
