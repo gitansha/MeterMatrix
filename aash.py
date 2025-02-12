@@ -108,5 +108,98 @@ def consumption_this_week(meterid):
     """
     return render_template_string(table_html)
 
+@app.route("/profile/<int:meterid>/consumption/this_month", methods=["GET"])
+def consumption_this_month(meterid):
+    meterid_str = str(meterid)
+    if meterid_str not in masterDB_dict:
+        return f"Meter ID {meterid} not found", 404
+
+    now = datetime.today()
+    current_year = now.year
+    current_month = now.month
+
+    # Filter the data for the current month (using calendar month boundaries)
+    monthly_data = {}
+    for key, value in masterDB_dict[meterid_str].items():
+        try:
+            # Only process keys that follow the date format YYYY-MM-DD
+            dt = datetime.strptime(key, "%Y-%m-%d")
+        except ValueError:
+            continue
+        if dt.year == current_year and dt.month == current_month:
+            monthly_data[key] = value
+
+    if not monthly_data:
+        return f"No data found for the current month for Meter ID: {meterid}", 404
+
+    # Sort dates for consistent ordering in the table and graph
+    sorted_dates = sorted(monthly_data.keys())
+    sorted_values = [monthly_data[date] for date in sorted_dates]
+
+    # Build the HTML output with a table and a Chart.js graph
+    html_template = f"""
+    <html>
+    <head>
+        <title>This Month's Consumption</title>
+        <style>
+            table {{
+                width: 50%;
+                border-collapse: collapse;
+            }}
+            th, td {{
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+        </style>
+        <!-- Load Chart.js from CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <h2>This Month's Consumption for Meter ID: {meterid}</h2>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Consumption</th>
+            </tr>
+    """
+    for date_str in sorted_dates:
+        html_template += f"<tr><td>{date_str}</td><td>{monthly_data[date_str]}</td></tr>"
+    html_template += """
+        </table>
+        <br>
+        <canvas id="consumptionChart" width="800" height="400"></canvas>
+        <script>
+            var ctx = document.getElementById('consumptionChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: """ + str(sorted_dates) + """,
+                    datasets: [{
+                        label: 'Consumption',
+                        data: """ + str(sorted_values) + """,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    </body>
+    </html>
+    """
+    return render_template_string(html_template)
+
 if __name__ == '__main__':
     app.run(debug=True)
