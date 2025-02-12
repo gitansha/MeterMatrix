@@ -1,4 +1,5 @@
 from flask import Flask, render_template_string, jsonify, redirect, url_for, request
+from datetime import datetime, timedelta
 
 import pandas as pd
 #in memory daily data (to be replaced by actual, test for now)
@@ -113,10 +114,19 @@ def profile_home(meterid):
         <script>
             function handleButtonClick(value) {{
                 if (value) {{
-                    fetch(`/profile/{meterid}/consumption/${{value}}`)
-                        .then(response => response.json())
-                        .then(data => alert("Consumption Data: " + JSON.stringify(data)))
-                        .catch(error => console.error('Error:', error));
+                    if (value === 'prev_hr') {{
+                        // Redirect to the new route for the previous half hour
+                        window.location.href = `/profile/{meterid}/consumption/last_half_hour`;
+                    }} else if (value === 'today') {{
+                        // Redirect to the new route for the previous half hour
+                        window.location.href = `/profile/{meterid}/consumption/today`;
+                    }} else {{
+                        // Handle other values, like fetching data via API
+                        fetch(`/profile/{meterid}/consumption/${{value}}`)
+                            .then(response => response.json())
+                            .then(data => alert("Consumption Data: " + JSON.stringify(data)))
+                            .catch(error => console.error('Error:', error));
+                    }}
                 }}
             }}
         </script>
@@ -137,15 +147,6 @@ def profile_home(meterid):
     '''
 
 @app.route('/profile/<meterid>/consumption/<time_period>', methods=['GET'])
-
-# meter id
-# time period
-# dataframe
-# last half n hr, today} dailyDB_df
-# aash} masterDB
-# filter dailyDB_df according to meter id and time period} show the table and graph
-# def display(meter_id, time+period, dataframe):
-# show table and graph
 def get_consumption(meterid, time_period):
     # Example data based on the time period (you can replace this with actual logic)
     consumption_data = {
@@ -158,6 +159,113 @@ def get_consumption(meterid, time_period):
     
     # Return the corresponding consumption data in JSON format
     return jsonify(consumption_data.get(time_period, {"usage": "Data not available"}))
+
+
+@app.route("/profile/<int:meterid>/consumption/last_half_hour", methods=["GET"])
+def get_last_half_hour(meterid):
+    if meterid not in dailyDB:
+        return f"Meter ID {meterid} not found", 404
+    
+    now = datetime.now().time()
+    half_hour_ago = (datetime.now() - timedelta(minutes=30)).time()
+
+    filtered_data = {
+        time_str: value
+        for time_str, value in dailyDB[meterid].items()
+        if half_hour_ago <= datetime.strptime(time_str, "%H:%M").time() <= now
+    }
+
+    if not filtered_data:
+        return f"No data found for the last half hour for Meter ID: {meterid}", 404
+
+    latest_time, latest_consumption = list(filtered_data.items())[-1]
+
+    table_html = f"""
+    <html>
+    <head>
+        <title>Previous Half Hour Consumption</title>
+        <style>
+            table {{ width: 50%; border-collapse: collapse; }}
+            th, td {{ border: 1px solid black; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
+        </style>
+    </head>
+    <body>
+        <h2>Previous Half Hour Consumption for Meter ID: {meterid}</h2>
+        <table>
+            <tr><th>Last Half Hour</th><th>Consumption</th></tr>
+            <tr><td>{latest_time}</td><td>{latest_consumption}</td></tr>
+        </table>
+    </body>
+    </html>
+    """
+    return render_template_string(table_html)
+
+
+@app.route("/profile/<int:meterid>/consumption/today", methods=["GET"])
+def get_consumption_today(meterid):
+    if meterid not in dailyDB:
+        return f"Meter ID {meterid} not found", 404
+
+    data = dailyDB[meterid]
+    table_html = """
+    <html>
+    <head>
+        <title>Consumption Data</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            table { width: 50%%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .container { display: flex; gap: 20px; }
+            .chart-container { width: 600px; height: 400px; }
+        </style>
+    </head>
+    <body>
+        <h2>Consumption Data for Meter ID: {{ meterid }}</h2>
+        <div class="container">
+            <div>
+                <table>
+                    <tr><th>Time</th><th>Consumption</th></tr>
+                    {% for time, value in data.items() %}
+                        <tr><td>{{ time }}</td><td>{{ value }}</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="chart-container">
+                <canvas id="consumptionChart"></canvas>
+            </div>
+        </div>
+
+        <script>
+            var ctx = document.getElementById('consumptionChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {{ data.keys() | list | tojson }},
+                    datasets: [{
+                        label: 'Consumption',
+                        data: {{ data.values() | list | tojson }},
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Consumption' } }
+                    }
+                }
+            });
+        </script>
+    </body>
+    </html>
+    """
+    return render_template_string(table_html, meterid=meterid, data=data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
