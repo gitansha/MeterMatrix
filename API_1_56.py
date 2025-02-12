@@ -103,8 +103,52 @@ def profile_redirect():
 
 # default shows today
 # need to show table and graph
-@app.route('/profile/<meterid>/consumption/', methods=['GET'])
+# @app.route('/profile/<meterid>/consumption/', methods=['GET'])
+# def profile_home(meterid):
+#     return f'''
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#         <meta charset="UTF-8">
+#         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#         <title>Profile Consumption</title>
+#         <script>
+#             function handleButtonClick(value) {{
+#                 if (value) {{
+#                     if (value === 'prev_hr') {{
+#                         // Redirect to the new route for the previous half hour
+#                         window.location.href = `/profile/{meterid}/consumption/last_half_hour`;
+#                     }} else if (value === 'today') {{
+#                         // Redirect to the new route for the previous half hour
+#                         window.location.href = `/profile/{meterid}/consumption/today`;
+#                     }} else {{
+#                         // Handle other values, like fetching data via API
+#                         fetch(`/profile/{meterid}/consumption/${{value}}`)
+#                             .then(response => response.json())
+#                             .then(data => alert("Consumption Data: " + JSON.stringify(data)))
+#                             .catch(error => console.error('Error:', error));
+#                     }}
+#                 }}
+#             }}
+#         </script>
+#     </head>
+#     <body>
+#         <h1>Welcome to your profile, Meter ID: {meterid}</h1>
+#         <label for="dropdown">Pick Time Period:</label>
+#         <select id="dropdown" onchange="handleButtonClick(this.value)">
+#             <option value="">Select</option>
+#             <option value="prev_hr">Previous Half Hour</option>
+#             <option value="today">Today</option>
+#             <option value="this_week">This Week</option>
+#             <option value="this_month">This Month</option>
+#             <option value="last_month">Last Month</option>
+#         </select>
+#     </body>
+#     </html>
+#     '''
+@app.route('/profile/<int:meterid>/consumption/', methods=['GET'])
 def profile_home(meterid):
+    # The JavaScript now simply redirects for any selected value.
     return f'''
     <!DOCTYPE html>
     <html lang="en">
@@ -115,19 +159,8 @@ def profile_home(meterid):
         <script>
             function handleButtonClick(value) {{
                 if (value) {{
-                    if (value === 'prev_hr') {{
-                        // Redirect to the new route for the previous half hour
-                        window.location.href = `/profile/{meterid}/consumption/last_half_hour`;
-                    }} else if (value === 'today') {{
-                        // Redirect to the new route for the previous half hour
-                        window.location.href = `/profile/{meterid}/consumption/today`;
-                    }} else {{
-                        // Handle other values, like fetching data via API
-                        fetch(`/profile/{meterid}/consumption/${{value}}`)
-                            .then(response => response.json())
-                            .then(data => alert("Consumption Data: " + JSON.stringify(data)))
-                            .catch(error => console.error('Error:', error));
-                    }}
+                    // Redirect to the appropriate endpoint
+                    window.location.href = `/profile/{meterid}/consumption/${{value}}`;
                 }}
             }}
         </script>
@@ -137,7 +170,7 @@ def profile_home(meterid):
         <label for="dropdown">Pick Time Period:</label>
         <select id="dropdown" onchange="handleButtonClick(this.value)">
             <option value="">Select</option>
-            <option value="prev_hr">Previous Half Hour</option>
+            <option value="last_half_hour">Previous Half Hour</option>
             <option value="today">Today</option>
             <option value="this_week">This Week</option>
             <option value="this_month">This Month</option>
@@ -146,20 +179,6 @@ def profile_home(meterid):
     </body>
     </html>
     '''
-
-@app.route('/profile/<meterid>/consumption/<time_period>', methods=['GET'])
-def get_consumption(meterid, time_period):
-    # Example data based on the time period (you can replace this with actual logic)
-    consumption_data = {
-        "prev_hr": {"usage": 5.2},
-        "today": {"usage": 10.4},
-        "this_week": {"usage": 70.3},
-        "this_month": {"usage": 300.5},
-        "last_month": {"usage": 280.1}
-    }
-    
-    # Return the corresponding consumption data in JSON format
-    return jsonify(consumption_data.get(time_period, {"usage": "Data not available"}))
 
 @app.route("/profile/<int:meterid>/consumption/last_half_hour", methods=["GET"])
 def get_last_half_hour(meterid):
@@ -552,7 +571,6 @@ def consumption_last_month(meterid):
     </html>
     """
     return render_template_string(html_template)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
