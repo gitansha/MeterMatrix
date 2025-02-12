@@ -264,6 +264,11 @@ def meterfeed():
     else:
         meterlogging("add", meterdata["id"], meterdata["reading_kWh"])
         return "Meter successfully logged"
+    
+# This is a barebones test API endpoint to extract out current in-memory meter reading data as the server is running. To delete, or maybe keep. Who knows?
+@app.route("/getmeterdata", methods=["GET"])
+def meterdiver():
+    return meter_readings
 
 
 ############################## Runs the file ##############################
