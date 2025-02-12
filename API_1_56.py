@@ -114,10 +114,16 @@ def profile_home(meterid):
         <script>
             function handleButtonClick(value) {{
                 if (value) {{
-                    fetch(`/profile/{meterid}/consumption/${{value}}`)
-                        .then(response => response.json())
-                        .then(data => alert("Consumption Data: " + JSON.stringify(data)))
-                        .catch(error => console.error('Error:', error));
+                    if (value === 'prev_hr') {{
+                        // Redirect to the new route for the previous half hour
+                        window.location.href = `/profile/{meterid}/consumption/last_half_hour`;
+                    }} else {{
+                        // Handle other values, like fetching data via API
+                        fetch(`/profile/{meterid}/consumption/${{value}}`)
+                            .then(response => response.json())
+                            .then(data => alert("Consumption Data: " + JSON.stringify(data)))
+                            .catch(error => console.error('Error:', error));
+                    }}
                 }}
             }}
         </script>
@@ -150,6 +156,48 @@ def get_consumption(meterid, time_period):
     
     # Return the corresponding consumption data in JSON format
     return jsonify(consumption_data.get(time_period, {"usage": "Data not available"}))
+
+
+@app.route("/profile/<int:meterid>/consumption/last_half_hour", methods=["GET"])
+def get_last_half_hour(meterid):
+    if meterid not in dailyDB:
+        return f"Meter ID {meterid} not found", 404
+    
+    now = datetime.now().time()
+    half_hour_ago = (datetime.now() - timedelta(minutes=30)).time()
+
+    filtered_data = {
+        time_str: value
+        for time_str, value in dailyDB[meterid].items()
+        if half_hour_ago <= datetime.strptime(time_str, "%H:%M").time() <= now
+    }
+
+    if not filtered_data:
+        return f"No data found for the last half hour for Meter ID: {meterid}", 404
+
+    latest_time, latest_consumption = list(filtered_data.items())[-1]
+
+    table_html = f"""
+    <html>
+    <head>
+        <title>Previous Half Hour Consumption</title>
+        <style>
+            table {{ width: 50%; border-collapse: collapse; }}
+            th, td {{ border: 1px solid black; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
+        </style>
+    </head>
+    <body>
+        <h2>Previous Half Hour Consumption for Meter ID: {meterid}</h2>
+        <table>
+            <tr><th>Last Half Hour</th><th>Consumption</th></tr>
+            <tr><td>{latest_time}</td><td>{latest_consumption}</td></tr>
+        </table>
+    </body>
+    </html>
+    """
+    return render_template_string(table_html)
+
 
 @app.route("/profile/<int:meterid>/consumption/today", methods=["GET"])
 def get_consumption_today(meterid):
@@ -214,47 +262,6 @@ def get_consumption_today(meterid):
     </html>
     """
     return render_template_string(table_html, meterid=meterid, data=data)
-
-
-@app.route("/profile/<int:meterid>/consumption/last_half_hour", methods=["GET"])
-def get_last_half_hour(meterid):
-    if meterid not in dailyDB:
-        return f"Meter ID {meterid} not found", 404
-    
-    now = datetime.now().time()
-    half_hour_ago = (datetime.now() - timedelta(minutes=30)).time()
-
-    filtered_data = {
-        time_str: value
-        for time_str, value in dailyDB[meterid].items()
-        if half_hour_ago <= datetime.strptime(time_str, "%H:%M").time() <= now
-    }
-
-    if not filtered_data:
-        return f"No data found for the last half hour for Meter ID: {meterid}", 404
-
-    latest_time, latest_consumption = list(filtered_data.items())[-1]
-
-    table_html = f"""
-    <html>
-    <head>
-        <title>Previous Half Hour Consumption</title>
-        <style>
-            table {{ width: 50%; border-collapse: collapse; }}
-            th, td {{ border: 1px solid black; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; }}
-        </style>
-    </head>
-    <body>
-        <h2>Previous Half Hour Consumption for Meter ID: {meterid}</h2>
-        <table>
-            <tr><th>Last Half Hour</th><th>Consumption</th></tr>
-            <tr><td>{latest_time}</td><td>{latest_consumption}</td></tr>
-        </table>
-    </body>
-    </html>
-    """
-    return render_template_string(table_html)
 
 
 if __name__ == '__main__':
