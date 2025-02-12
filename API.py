@@ -13,16 +13,13 @@ app = Flask(__name__)
 new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
-
 # Function to get users from user.json
 def load_users():
-    with open("users.json", "r") as file:
+    with open('users.json', 'r') as file:
         data = json.load(file)
-    return data["users"]  # Return list of users
-
+    return data['users']  # Return list of users
 
 ############################## Logging Code ##############################
-
 
 class Log:
     def __init__(self, timestamp, request_type, details):
@@ -34,11 +31,7 @@ class Log:
 logs = []
 
 log_dir = Path("./logs")
-log_file_path = log_dir / "logs.txt"
-
-log_dir = Path("./logs")
-log_file_path = log_dir / "logs.txt"
-
+log_file_path = log_dir/"logs.txt"
 
 # Logging Function:
 # Please use this funtion to add the logging details
@@ -53,10 +46,9 @@ def log_request(request_type, details):
 
     with log_file_path.open("a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
-
+    
 
 ############################## Meter Data Code ##############################
-
 
 class meterdata:
     def __init__(self, timestamp, consumption):
@@ -90,32 +82,44 @@ def meterlogging(access_type, meter_id, meter_data=None):
         # TODO
         pass
 
-
 ############################## APIs ##############################
-
 
 @app.route("/", methods=["GET"])
 def landing():
-    # TODO Form to lead to /profile which takes in user meterid
-    return "Created so that server will run. Needs a lot of modifications"
+    return render_template_string(
+        """
+        <html>
+        <body>
+            <h1>Welcome to Meter Registration</h1>
+            <button onclick="location.href='/register'">Register</button>
+            <button onclick="location.href='/profile'">Login</button>
+        </body>
+        </html>
+        """
+            )
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET"])
 def register():
-    return """
-<html>
-    <div id="rightdiv">
-       Please enter your name to register for the meter.
-       <form action="/register-success" method="post">
-              <label for="name">
-                <strong>Name</strong>
-              </label>
-              <input type="text" id="name" placeholder="Enter your name to register" name="name" required>
-              <br>
-              <input type="submit" value="Click to register"/>
-       </form>
-    </div>
-    </html>"""
+    return render_template_string(
+        """
+        <html>
+        <body>
+            <h2>Register for a Meter</h2>
+            <form action="/register-success" method="post">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <br>
+                <label for="fin">FIN:</label>
+                <input type="text" id="fin" name="fin" required>
+                <br>
+                <input type="submit" value="Register">
+            </form>
+        </body>
+        </html>
+        """
+    )
+
 
 
 @app.route("/register-success", methods=["POST", "GET"])
@@ -128,6 +132,8 @@ def get_meter_id():
         ):  # Is there a scenario where "name" will not be present if the form input for name is required in /register?
             user = request.form["name"]
             new_user_list.append(user)
+            
+            
             meter_id = random.randint(1, 1000000000)  # Update this as needed
             while meter_id in meter_id_list:
                 meter_id = random.randint(1, 1000000000)
@@ -142,6 +148,8 @@ def get_meter_id():
                 <p>Hi {{ user }}, your login ID is {{ meter_id }}.</p>
                 <p>You will be redirected to main page in 10 seconds.</p>
                 <p>Use this id to view your electricity consumption.</p>
+                <button onclick="window.location.href='/profile'">Go to Login</button>
+                <button onclick="window.location.href='/profile/{{ meter_id }}/consumption'">View Electricity Consumption</button>
                 <script>
                     setTimeout(function() {
                         window.location.href = "{{ url_for('landing') }}";
@@ -165,9 +173,9 @@ def get_meter_id():
     return "Invalid request method."
 
 
-@app.route("/profile", methods=["GET", "POST"])
+@app.route('/profile', methods=['GET', 'POST'])
 def user_login():
-    if request.method == "GET":
+    if request.method == 'GET':
         # If it's a GET request, render the login form
         return """
             <html>
@@ -181,73 +189,66 @@ def user_login():
                 </body>
             </html>
         """
-    elif request.method == "POST":
+    elif request.method == 'POST':
         # If it's a POST request, process the login
-        meter_id = request.form.get("meter_id")
-
+        meter_id = request.form.get('meter_id')
+        
         # Load users from the users.json file
         users = load_users()
-
+        
         # Check if the meter_id exists in the list of users
         user_found = None
         for user in users:
-            if user["meter_id"] == int(meter_id):  # Match the meter_id
+            if user['meter_id'] == int(meter_id):  # Match the meter_id
                 user_found = user
                 break
-
+        
         if user_found:
-            # If user found, redirect to the profile page
-            return render_template_string(
-                """
+    # If user found, redirect to the profile page
+            return render_template_string("""
                 <script>
                 window.location.href = '/profile/{{ meter_id }}';
                 </script>
-             """,
-                meter_id=meter_id,
-            )
+             """, meter_id=meter_id)
         else:
             # Error message and option to return to the login page
-            return render_template_string(
-                """
+            return render_template_string("""
                 <p>Error: User not found. Please check your meter ID and try again.</p>
                 <a href="{{ url_for('user_login') }}">Back to login</a>
-            """
-            )
+            """)
 
 
 @app.route("/profile/<meterid>", methods=["GET"])
 def user_profile(meterid):
     # Load users from the users.json file
     users = load_users()
-
+    
     # Find the user by meter_id
     for user in users:
-        if user["meter_id"] == int(meterid):  # Match the meter_id
+        if user['meter_id'] == int(meterid):  # Match the meter_id
             # Return the profile page with the button leading to consumption page
             return render_template_string(
-                """
+            """
                 <h1>Welcome, {{ name }}!</h1>
                 <p>Your Meter ID is: {{ meter_id }}</p>
                 <form method="get" action="/profile/{{ meter_id }}/consumption">
                     <input type="submit" value="Go to Consumption">
                 </form>
-            """,
-                name=user["name"],
-                meter_id=meterid,
-            )
-
+            """
+            , name=user['name'], meter_id=meterid)
+    
     # If the user is not found (in case something goes wrong)
     return f"Error: User with Meter ID {meterid} not found."
 
 
 @app.route("/profile/<meterid>/consumption", methods=["GET"])
 def consumption(meterid):
+    return "test"
+
+
+@app.route("/profile", methods=["POST"])
+def profile_retrieval(meterid):
     pass
-
-
-# @app.route("/profile", methods=["POST"])
-# def retrieve(meterid):
-#     pass
 
 
 @app.route("/profile/<meterid>/consumption/download", methods=["GET"])
@@ -262,7 +263,7 @@ def meterfeed():
     if meterdata is None:
         log_request("Failed Meter Reading Request", "Missing meter reading data")
         return "Missing meter data"
-
+    
     else:
         meterlogging("add", meterdata["id"], meterdata["reading_kWh"])
         return "Meter successfully logged"
