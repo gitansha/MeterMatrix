@@ -14,10 +14,10 @@ new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
 # Function to get users from user.json
+# Load users from users.json
 def load_users():
     with open('users.json', 'r') as file:
-        data = json.load(file)
-    return data['users']  # Return list of users
+        return json.load(file) #Return nested dictinory with users and their data
 
 ############################## Logging Code ##############################
 
@@ -176,7 +176,7 @@ def get_meter_id():
 @app.route('/profile', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'GET':
-        # If it's a GET request, render the login form
+        # Render login form
         return """
             <html>
                 <body>
@@ -190,28 +190,22 @@ def user_login():
             </html>
         """
     elif request.method == 'POST':
-        # If it's a POST request, process the login
+        # Get meter_id from the form
         meter_id = request.form.get('meter_id')
-        
-        # Load users from the users.json file
+
+        # Load users from JSON
         users = load_users()
-        
-        # Check if the meter_id exists in the list of users
-        user_found = None
-        for user in users:
-            if user['meter_id'] == int(meter_id):  # Match the meter_id
-                user_found = user
-                break
-        
-        if user_found:
-    # If user found, redirect to the profile page
+
+        # Check if meter_id exists in the dictionary
+        if (meter_id) in users:
+            # Redirect to the profile page
             return render_template_string("""
                 <script>
                 window.location.href = '/profile/{{ meter_id }}';
                 </script>
              """, meter_id=meter_id)
         else:
-            # Error message and option to return to the login page
+            # User not found
             return render_template_string("""
                 <p>Error: User not found. Please check your meter ID and try again.</p>
                 <a href="{{ url_for('user_login') }}">Back to login</a>
@@ -222,23 +216,26 @@ def user_login():
 def user_profile(meterid):
     # Load users from the users.json file
     users = load_users()
+
+    # Check if meterID exists in the dictionary
+    if (meterid) in users:
+        user = users[(meterid)]  # User details
+
+        # Return the profile page with a button leading to the consumption page
+        return render_template_string("""
+            <h1>Welcome, {{ name }}!</h1>
+            <p>Your Meter ID is: {{ meter_id }}</p>
+            <form method="get" action="/profile/{{ meter_id }}/consumption">
+                <input type="submit" value="Go to Consumption">
+            </form>
+        """, name=user['name'], meter_id=meterid)
     
-    # Find the user by meter_id
-    for user in users:
-        if user['meter_id'] == int(meterid):  # Match the meter_id
-            # Return the profile page with the button leading to consumption page
-            return render_template_string(
-            """
-                <h1>Welcome, {{ name }}!</h1>
-                <p>Your Meter ID is: {{ meter_id }}</p>
-                <form method="get" action="/profile/{{ meter_id }}/consumption">
-                    <input type="submit" value="Go to Consumption">
-                </form>
-            """
-            , name=user['name'], meter_id=meterid)
-    
-    # If the user is not found (in case something goes wrong)
-    return f"Error: User with Meter ID {meterid} not found."
+    else:
+        # If user is not found, show error message (In case something goes wrong)
+        return render_template_string("""
+            <p>Error: User not found. Please check your meter ID and try again.</p>
+            <a href="{{ url_for('user_login') }}">Back to login</a>
+        """)
 
 
 @app.route("/profile/<meterid>/consumption", methods=["GET"])
