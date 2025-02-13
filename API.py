@@ -50,32 +50,38 @@ def log_request(request_type, details):
 
 ############################## Meter Data Code ##############################
 
-class meterdata:
-    def __init__(self, timestamp, consumption):
+class MeterData:
+    def __init__(self, id, timestamp, consumption):
+        self.id = id
         self.timestamp = timestamp
         self.consumption = consumption
 
 
 # Flushed daily to txt file
 # Backup system reads from this every 2 hours
-# format: {meterid1: [meterdata1, meterdata2, ...],
-#          meterid2: [meterdata1, meterdata2, ...]}
+# format: {meterid1: {timestamp1: meterdata1.1,
+#                    {timestamp2: meterdata1.2},
+#          meterid2: {timestamp1: meterdata2.1,
+#                    {timestamp2: meterdata2.2},}
+
 meter_readings = {}
 
 
 # access_type either "add" or "backup"
-def meterlogging(access_type, meter_id, meter_data=None):
+def meterlogging(access_type, meterdata):
     if access_type == "add":
-        if meter_id in meter_readings:
-            meter_readings[meter_id].append(meter_data)
+        if meterdata.id in meter_readings:
+            slicedtimestamp = meterdata.timestamp[11:16]
+            meter_readings[meterdata.id][slicedtimestamp] = meterdata.consumption
             log_request(
-                "Incoming meter reading", f"Meter reading added for account {meter_id}."
+                "Incoming meter reading", f"Meter reading added for account {meterdata.id}."
             )
         else:
-            meter_readings[meter_id] = [meter_data]
+            slicedtimestamp = meterdata.timestamp[11:16]
+            meter_readings[meterdata.id] = {slicedtimestamp: meterdata.consumption}
             log_request(
                 "Incoming first meter reading",
-                f"First meter reading added for account {meter_id}.",
+                f"First meter reading added for account {meterdata.id}.",
             )
 
     elif access_type == "backup":
@@ -255,14 +261,14 @@ def downloadconsumption():
 
 @app.route("/meter", methods=["POST"])
 def meterfeed():
-    meterdata = request.get_json()
-    print(meterdata)
-    if meterdata is None:
+    meterdatajson = request.get_json()
+    if meterdatajson is None:
         log_request("Failed Meter Reading Request", "Missing meter reading data")
         return "Missing meter data"
     
     else:
-        meterlogging("add", meterdata["id"], meterdata["reading_kWh"])
+        meterdata = MeterData(meterdatajson["id"], meterdatajson["timestamp"], meterdatajson["reading_kWh"])
+        meterlogging("add", meterdata)
         return "Meter successfully logged"
     
 # This is a barebones test API endpoint to extract out current in-memory meter reading data as the server is running. To delete, or maybe keep. Who knows?
