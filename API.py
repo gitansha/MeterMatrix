@@ -1,6 +1,6 @@
 ############################## Imports ##############################
 
-from flask import Flask, jsonify, request, render_template_string, url_for, g, redirect
+from flask import Flask, jsonify, request, render_template_string, url_for, g, redirect, make_response
 import random
 import datetime
 from datetime import timedelta
@@ -8,8 +8,36 @@ import json
 from pathlib import Path
 import visualisation_files.management_dashboard as management_dash  # dash file
 import pandas as pd
+import threading
+import subprocess
+import platform
+import multiprocessing
+import time # For testing
 
 app = Flask(__name__)
+
+############################### Backup Front-load Codes ###########################
+
+# Locks the thread for running a specific API only while it is being called. (/getmeterdata) for backup
+# Can't get the Lock objects to work in flask. resort to global variable instead
+# backuplock = multiprocessing.Lock()
+# backuplock = threading.Lock()
+backuplock = True
+
+# I believe this is a github codespaces constraint as codespaces runs on 1 thread. Therefore I need to split the process out. Normally I believe the server should be able to run a batch/shell file right?
+# Starts running the .bat file upon server start up, which begins the 2 hour backup cycle
+def execute_backup_script():
+    current_os = platform.system()
+
+    if current_os == "Windows":
+        pass
+        #subprocess.run('backupper.bat', shell = True)
+    else:
+        subprocess.run('./backupper.sh', shell = True)
+
+backup_process = multiprocessing.Process(target = execute_backup_script)
+
+backup_process.start()
 
 ############################### Management Dashboard ###########################
 with app.app_context():
@@ -83,18 +111,21 @@ def save_db(data, filename="database/data.json"):
 
 
 class MeterData:
-    def __init__(self, id, timestamp, consumption):
+    def __init__(self, id, timestamp, reading):
         self.id = id
         self.timestamp = timestamp
-        self.consumption = consumption
+        self.reading = reading
 
 
 # Flushed daily to txt file
 # Backup system reads from this every 2 hours
-# format: {meterid1: {timestamp1: meterdata1.1,
+# format: {meterid1: {prevreading: meterdata,
+#                     timestamp1: meterdata1.1,
 #                    {timestamp2: meterdata1.2},
-#          meterid2: {timestamp1: meterdata2.1,
-#                    {timestamp2: meterdata2.2},}
+#          meterid2: {prevreading: meterdata,
+#                     timestamp1: meterdata2.1,
+#                     timestamp2: meterdata2.2}
+#           }
 
 meter_readings = {}
 
@@ -105,6 +136,7 @@ meter_readings = {}
 # 00:31       4.50       4.50       4.40       4.35       4.48
 # 01:01       4.55       4.55       4.45       4.40       4.53
 # 01:31       4.60       4.60       4.48       4.45       4.56
+
 dailyDB = {
   "999999999": {
     "00:31": 4.50, "01:01": 4.55, "01:31": 4.60, "02:01": 4.58, "02:31": 4.62,
@@ -177,22 +209,20 @@ def meterlogging(access_type, meterdata):
     if access_type == "add":
         if meterdata.id in meter_readings:
             slicedtimestamp = meterdata.timestamp[11:16]
-            meter_readings[meterdata.id][slicedtimestamp] = meterdata.consumption
+            meter_readings[meterdata.id][slicedtimestamp] = round((meterdata.reading - meter_readings[meterdata.id]["prevreading"]),2)
+            meter_readings[meterdata.id]["prevreading"] = meterdata.reading
             log_request(
                 "Incoming meter reading",
                 f"Meter reading added for account {meterdata.id}.",
             )
         else:
             slicedtimestamp = meterdata.timestamp[11:16]
-            meter_readings[meterdata.id] = {slicedtimestamp: meterdata.consumption}
+            meter_readings[meterdata.id] = {"prevreading": meterdata.reading}
+            meter_readings[meterdata.id][slicedtimestamp] = meterdata.reading
             log_request(
                 "Incoming first meter reading",
                 f"First meter reading added for account {meterdata.id}.",
             )
-
-    elif access_type == "backup":
-        # TODO
-        pass
 
 
 ############################## APIs ##############################
@@ -811,40 +841,38 @@ def consumption_last_month(meterid):
     return render_template_string(html_template)
 
 
-@app.route("/profile", methods=["POST"])
-def profile_retrieval(meterid):
-    pass
-
-
-@app.route("/profile/<meterid>/consumption/download", methods=["GET"])
-def downloadconsumption():
-    pass
-
-
 @app.route("/meter", methods=["POST"])
 def meterfeed():
-    meterdatajson = request.get_json()
-    if meterdatajson is None:
-        log_request("Failed Meter Reading Request", "Missing meter reading data")
-        return "Missing meter data"
+    if backuplock:
+        meterdatajson = request.get_json()
+        if meterdatajson is None:
+            log_request("Failed Meter Reading Request", "Missing meter reading data")
+            return "Missing meter data"
 
+        else:
+            meterdata = MeterData(
+                meterdatajson["id"],
+                meterdatajson["timestamp"],
+                meterdatajson["reading_kWh"],
+            )
+            meterlogging("add", meterdata)
+            return "Meter successfully logged"
     else:
-        meterdata = MeterData(
-            meterdatajson["id"],
-            meterdatajson["timestamp"],
-            meterdatajson["reading_kWh"],
-        )
-        meterlogging("add", meterdata)
-        return "Meter successfully logged"
+        return make_response("Server Paused", 201)
 
 
-# This is a barebones test API endpoint to extract out current in-memory meter reading data as the server is running. To delete, or maybe keep. Who knows?
+# For backup
 @app.route("/getmeterdata", methods=["GET"])
 def meterdiver():
-    return meter_readings
-
+    global backuplock 
+    backuplock = False
+    jsoned_meter_readings = json.dumps(meter_readings)
+    time.sleep(4)
+    print("sleep over")
+    backuplock = True
+    return jsoned_meter_readings
 
 ############################## Runs the file ##############################
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=5000, debug=True)
+    app.run(host="localhost", port=5000, debug=False) # Changing to False to test process locking
