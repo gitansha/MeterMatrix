@@ -16,7 +16,7 @@ meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 # Function to get users from user.json
 # Load users from users.json
 def load_users():
-    with open('users.json', 'r') as file:
+    with open('./database/users.json', 'r') as file:
         return json.load(file) #Return nested dictinory with users and their data
 
 ############################## Logging Code ##############################
@@ -199,18 +199,21 @@ def user_login():
         # Check if meter_id exists in the dictionary
         if (meter_id) in users:
             # Redirect to the profile page
+            log_request(f"User logged in",f"Meter ID : {meter_id} logged in")
             return render_template_string("""
                 <script>
                 window.location.href = '/profile/{{ meter_id }}';
                 </script>
              """, meter_id=meter_id)
+                
         else:
             # User not found
+            log_request(f"Error",f"User entered wrong meter ID")
             return render_template_string("""
                 <p>Error: User not found. Please check your meter ID and try again.</p>
                 <a href="{{ url_for('user_login') }}">Back to login</a>
             """)
-
+            
 
 @app.route("/profile/<meterid>", methods=["GET"])
 def user_profile(meterid):
@@ -220,6 +223,7 @@ def user_profile(meterid):
     # Check if meterID exists in the dictionary
     if (meterid) in users:
         user = users[(meterid)]  # User details
+        log_request(f"Login successful",f"Meter ID : {meterid} logged in successfully")
 
         # Return the profile page with a button leading to the consumption page
         return render_template_string("""
@@ -230,8 +234,11 @@ def user_profile(meterid):
             </form>
         """, name=user['name'], meter_id=meterid)
     
+    
+    
     else:
         # If user is not found, show error message (In case something goes wrong)
+        log_request(f"Login failed",f"Meter ID : {meterid} not in DB")
         return render_template_string("""
             <p>Error: User not found. Please check your meter ID and try again.</p>
             <a href="{{ url_for('user_login') }}">Back to login</a>
