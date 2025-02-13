@@ -25,8 +25,9 @@ with app.app_context():
 
 ############################## New User Code ##############################
 
-new_user_list = ["john A"]
-meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
+# new_user_list = ["john A"]
+# meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
+new_user_dict = {}
 
 
 # Function to get users from user.json
@@ -159,16 +160,19 @@ def get_meter_id():
             "name" in request.form
         ):  # Is there a scenario where "name" will not be present if the form input for name is required in /register?
             user = request.form["name"]
-            new_user_list.append(user)
-
-            meter_id = random.randint(1, 1000000000)  # Update this as needed
-            while meter_id in meter_id_list:
+            fin = request.form["fin"]
+            db = load_users()
+            meter_id = random.randint(
+                1, 1000000000
+            )  # checking that meter id doesn't get duplicated
+            while meter_id in db.keys():
                 meter_id = random.randint(1, 1000000000)
-            meter_id_list.add(meter_id)
-            # TODO: Add a button which redirects to the electricity consumption page or login page
+            # ---------------- TODO:: Add the user to the main db during server shutdown-----------
+            new_user_dict[meter_id] = {"name": user, "fin_no": fin}
+
             log_request(
                 "add_meter_reading",
-                f"Meter reading account added for user {user} account {meter_id}.",
+                f"Meter reading account added for user {user} with FIN no. {fin} account {meter_id}.",
             )
             return render_template_string(
                 """
