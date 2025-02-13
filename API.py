@@ -23,20 +23,6 @@ with app.app_context():
     app = management_dash.init_app("/management-dashboard/")
 
 
-############################## New User Code ##############################
-
-# new_user_list = ["john A"]
-# meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
-new_user_dict = {}
-
-
-# Function to get users from user.json
-# Load users from users.json
-def load_users():
-    with open("database/users.json", "r") as file:
-        return json.load(file)  # Return nested dictinory with users and their data
-
-
 ############################## Logging Code ##############################
 
 
@@ -66,6 +52,30 @@ def log_request(request_type, details):
 
     with log_file_path.open("a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
+
+
+############################## New User Code ##############################
+
+# new_user_list = ["john A"]
+# meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
+new_user_dict = {}
+
+
+# Function to get users from user.json
+# Load users from users.json
+def load_users():
+    with open("database/users.json", "r") as file:
+        return json.load(file)  # Return nested dictinory with users and their data
+
+
+def save_db(data, filename="database/data.json"):
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=2)
+    log_request(
+        "Updated database",
+        f"{filename.split('/')[-1].split('.')[0]} database rewritten",
+    )
+    # print(f"Generated {filename}")
 
 
 ############################## Meter Data Code ##############################
@@ -168,7 +178,8 @@ def get_meter_id():
             while meter_id in db.keys():
                 meter_id = random.randint(1, 1000000000)
             # ---------------- TODO:: Add the user to the main db during server shutdown-----------
-            new_user_dict[meter_id] = {"name": user, "fin_no": fin}
+            db[meter_id] = {"name": user, "fin_no": fin}
+            save_db(db, "database/users.json")
 
             log_request(
                 "add_meter_reading",
