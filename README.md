@@ -33,7 +33,7 @@ JSON file (text file storing data)
   "reading_kWh": 5.5
 }
 ```
-
+km,
 ### 1.2 Daily In Memory Data
 This data structure (nested dictionary) is maintained by our `API.py` program. It stores all half-hourly readings from all meters for the current day and refreshes at `00:00`.  
 
@@ -137,6 +137,7 @@ Overall,
 | `/profile/{meterId}/consumption/download`          | User can download their bill for the selected time period.                                        |
 | `/meter`                                           | Meter accesses this API and sends a JSON packet consisting of its ID, consumption in the previous half hour, and timestamp. |
 | **Example:** `/profile/999-999-999`                 | This is an example of how to query a specific meter's profile.                                    |
+| `/management-dashboard/`                            | Management dashboard to view the region wise consumption                                          |
 
 
 
