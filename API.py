@@ -6,6 +6,7 @@ import datetime
 import json
 from pathlib import Path
 import visualisation_files.management_dashboard as management_dash  # dash file
+import pandas as pd
 
 app = Flask(__name__)
 
