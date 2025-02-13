@@ -18,7 +18,7 @@ dailyDB = {
     "10:31": 4.58, "11:01": 4.62, "11:31": 4.47, "12:01": 4.59, "12:31": 4.54,
     "13:01": 4.51, "13:31": 4.60, "14:01": 4.53, "14:31": 4.48, "15:01": 4.57,
     "15:31": 4.49, "16:01": 4.61, "16:31": 4.55, "17:01": 4.50, "17:31": 4.46,
-    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58, "22:01":4.6
+    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58, "22:01":4.6, "prevreading": 7.3
   },
   "555555555": {
     "00:31": 4.50, "01:01": 4.55, "01:31": 4.60, "02:01": 4.58, "02:31": 4.62,
@@ -28,7 +28,7 @@ dailyDB = {
     "10:31": 4.58, "11:01": 4.62, "11:31": 4.47, "12:01": 4.59, "12:31": 4.54,
     "13:01": 4.51, "13:31": 4.60, "14:01": 4.53, "14:31": 4.48, "15:01": 4.57,
     "15:31": 4.49, "16:01": 4.61, "16:31": 4.55, "17:01": 4.50, "17:31": 4.46,
-    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58
+    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58, "prevreading": 7.3
   },
   "111111111": {
     "00:31": 4.40, "01:01": 4.45, "01:31": 4.48, "02:01": 4.50, "02:31": 4.55,
@@ -38,7 +38,7 @@ dailyDB = {
     "10:31": 4.55, "11:01": 4.60, "11:31": 4.43, "12:01": 4.52, "12:31": 4.50,
     "13:01": 4.47, "13:31": 4.55, "14:01": 4.49, "14:31": 4.45, "15:01": 4.53,
     "15:31": 4.50, "16:01": 4.57, "16:31": 4.49, "17:01": 4.48, "17:31": 4.44,
-    "18:01": 4.55, "18:31": 4.47, "19:01": 4.50
+    "18:01": 4.55, "18:31": 4.47, "19:01": 4.50, "prevreading": 7.3
   },
   "222222222": {
     "00:31": 4.35, "01:01": 4.40, "01:31": 4.45, "02:01": 4.47, "02:31": 4.50,
@@ -48,7 +48,7 @@ dailyDB = {
     "10:31": 4.50, "11:01": 4.55, "11:31": 4.40, "12:01": 4.47, "12:31": 4.44,
     "13:01": 4.41, "13:31": 4.49, "14:01": 4.43, "14:31": 4.38, "15:01": 4.50,
     "15:31": 4.45, "16:01": 4.52, "16:31": 4.47, "17:01": 4.42, "17:31": 4.40,
-    "18:01": 4.50, "18:31": 4.44, "19:01": 4.48
+    "18:01": 4.50, "18:31": 4.44, "19:01": 4.48, "prevreading": 7.3
   },
   333333333: {
     "00:31": 4.48, "01:01": 4.53, "01:31": 4.56, "02:01": 4.55, "02:31": 4.60,
@@ -58,10 +58,15 @@ dailyDB = {
     "10:31": 4.60, "11:01": 4.65, "11:31": 4.52, "12:01": 4.60, "12:31": 4.56,
     "13:01": 4.53, "13:31": 4.62, "14:01": 4.55, "14:31": 4.50, "15:01": 4.60,
     "15:31": 4.53, "16:01": 4.65, "16:31": 4.58, "17:01": 4.55, "17:31": 4.50,
-    "18:01": 4.62, "18:31": 4.55, "19:01": 4.60
+    "18:01": 4.62, "18:31": 4.55, "19:01": 4.60, "prevreading": 7.3
   }
 }
+def remove_prevreading(dailyDB):
+    for key in dailyDB:
+        dailyDB[key].pop("prevreading", None)  # Remove "prevreading" if it exists
+    return dailyDB
 
+dailyDB = remove_prevreading(dailyDB)
 # reading master database
 # format
 # columns: name, meter_id, fin_no, previous_day(dict of 47 values with timestamps), previous days
@@ -253,10 +258,9 @@ def get_current_week_dates():
     return [(start_of_week + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
 
 
-@app.route("/profile/<int:meterid>/consumption/this_week", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/this_week", methods=["GET"])
 def consumption_this_week(meterid):
-    meterid_str = str(meterid)
-    if meterid_str not in masterDB_dict:
+    if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
 
     # Get the list of dates for the current week
@@ -264,7 +268,7 @@ def consumption_this_week(meterid):
 
     # Filter the weekly data from the meter record; ignore keys that are not valid dates.
     weekly_data = {}
-    for date_str, value in masterDB_dict[meterid_str].items():
+    for date_str, value in masterDB_dict[meterid].items():
         try:
             # Only process keys that look like dates (YYYY-MM-DD)
             datetime.strptime(date_str, "%Y-%m-%d")
@@ -352,10 +356,9 @@ def consumption_this_week(meterid):
     return render_template_string(table_html)
 
 
-@app.route("/profile/<int:meterid>/consumption/this_month", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/this_month", methods=["GET"])
 def consumption_this_month(meterid):
-    meterid_str = str(meterid)
-    if meterid_str not in masterDB_dict:
+    if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
 
     now = datetime.today()
@@ -364,7 +367,7 @@ def consumption_this_month(meterid):
 
     # Filter the data for the current month (using calendar month boundaries)
     monthly_data = {}
-    for key, value in masterDB_dict[meterid_str].items():
+    for key, value in masterDB_dict[meterid].items():
         try:
             # Only process keys that follow the date format YYYY-MM-DD
             dt = datetime.strptime(key, "%Y-%m-%d")
@@ -454,10 +457,9 @@ def consumption_this_month(meterid):
     return render_template_string(html_template)
 
 
-@app.route("/profile/<int:meterid>/consumption/last_month", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/last_month", methods=["GET"])
 def consumption_last_month(meterid):
-    meterid_str = str(meterid)
-    if meterid_str not in masterDB_dict:
+    if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
 
     now = datetime.today()
@@ -471,7 +473,7 @@ def consumption_last_month(meterid):
 
     # Filter the data for last month using the calendar month and year
     monthly_data = {}
-    for key, value in masterDB_dict[meterid_str].items():
+    for key, value in masterDB_dict[meterid].items():
         try:
             dt = datetime.strptime(key, "%Y-%m-%d")
         except ValueError:
