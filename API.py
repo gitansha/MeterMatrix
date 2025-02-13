@@ -21,7 +21,7 @@ with app.app_context():
 
     # Add Dash app to Flask context. Specify the app's url path and pass the flask server to your data
     app = management_dash.init_app("/management-dashboard/")
-    # app = population.init_app("/population/")
+
 
 ############################## New User Code ##############################
 
