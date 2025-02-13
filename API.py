@@ -32,7 +32,7 @@ meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 # Function to get users from user.json
 # Load users from users.json
 def load_users():
-    with open("users.json", "r") as file:
+    with open("database/users.json", "r") as file:
         return json.load(file)  # Return nested dictinory with users and their data
 
 
