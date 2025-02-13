@@ -3,267 +3,267 @@
     {
       "id": 999999999,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.5
+      "reading_kWh": 19.8
     },
     {
       "id": 555555555,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.8
+      "reading_kWh": 20.0
     },
     {
       "id": 777777777,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.2
+      "reading_kWh": 18.5
     },
     {
       "id": 888888888,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.1
+      "reading_kWh": 16.3
     },
     {
       "id": 444444444,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.9
+      "reading_kWh": 22.6
     },
     {
       "id": 111111111,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.6
+      "reading_kWh": 19.7
     },
     {
       "id": 222222222,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.0
+      "reading_kWh": 17.9
     },
     {
       "id": 333333333,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.4
+      "reading_kWh": 19.2
     },
     {
       "id": 666666666,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.2
+      "reading_kWh": 18.2
     },
     {
       "id": 123456789,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.7
+      "reading_kWh": 17.2
     },
     {
       "id": 987654321,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.9
+      "reading_kWh": 22.6
     },
     {
       "id": 246813579,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.3
+      "reading_kWh": 21.6
     },
     {
       "id": 135792468,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.7
+      "reading_kWh": 16.9
     },
     {
       "id": 369258147,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 8.0
+      "reading_kWh": 21.6
     },
     {
       "id": 258147369,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.5
+      "reading_kWh": 21.0
     },
     {
       "id": 147258369,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.3
+      "reading_kWh": 18.6
     },
     {
       "id": 963852741,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.8
+      "reading_kWh": 23.5
     },
     {
       "id": 852741963,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.4
+      "reading_kWh": 15.7
     },
     {
       "id": 741852963,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.1
+      "reading_kWh": 21.4
     },
     {
       "id": 159263748,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.6
+      "reading_kWh": 15.6
     },
     {
       "id": 357159264,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.0
+      "reading_kWh": 19.0
     },
     {
       "id": 951753864,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.5
+      "reading_kWh": 18.7
     },
     {
       "id": 753951864,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.9
+      "reading_kWh": 23.2
     },
     {
       "id": 159357486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.7
+      "reading_kWh": 21.1
     },
     {
       "id": 357951486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 8.2
+      "reading_kWh": 18.8
     },
     {
       "id": 486157923,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.3
+      "reading_kWh": 23.1
     },
     {
       "id": 789456123,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.1
+      "reading_kWh": 18.1
     },
     {
       "id": 321654987,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.6
+      "reading_kWh": 19.2
     },
     {
       "id": 147852369,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.9
+      "reading_kWh": 21.1
     },
     {
       "id": 258963147,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.5
+      "reading_kWh": 22.7
     },
     {
       "id": 369147258,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 8.2
+      "reading_kWh": 21.8
     },
     {
       "id": 951357486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.4
+      "reading_kWh": 22.2
     },
     {
       "id": 753159486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.1
+      "reading_kWh": 16.5
     },
     {
       "id": 159753486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.6
+      "reading_kWh": 22.0
     },
     {
       "id": 357159486,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.0
+      "reading_kWh": 19.2
     },
     {
       "id": 486753159,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.3
+      "reading_kWh": 23.5
     },
     {
       "id": 789321654,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.3
+      "reading_kWh": 18.0
     },
     {
       "id": 321987654,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.8
+      "reading_kWh": 22.2
     },
     {
       "id": 147369258,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.7
+      "reading_kWh": 18.5
     },
     {
       "id": 258741963,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 8.2
+      "reading_kWh": 18.1
     },
     {
       "id": 369852147,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.4
+      "reading_kWh": 20.0
     },
     {
       "id": 951246837,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 8.0
+      "reading_kWh": 18.8
     },
     {
       "id": 753468219,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.5
+      "reading_kWh": 17.4
     },
     {
       "id": 159624837,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.1
+      "reading_kWh": 17.2
     },
     {
       "id": 357846219,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 6.4
+      "reading_kWh": 18.4
     },
     {
       "id": 486159273,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.9
+      "reading_kWh": 19.6
     },
     {
       "id": 789632541,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.7
+      "reading_kWh": 21.8
     },
     {
       "id": 321965847,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.1
+      "reading_kWh": 22.8
     },
     {
       "id": 147582369,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.3
+      "reading_kWh": 20.4
     },
     {
       "id": 258963741,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.0
+      "reading_kWh": 20.4
     },
     {
       "id": 369147852,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.5
+      "reading_kWh": 18.8
     },
     {
       "id": 951753642,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 7.2
+      "reading_kWh": 19.2
     },
     {
       "id": 753951468,
       "timestamp": "2025-02-08T05:31:00Z",
-      "reading_kWh": 5.4
+      "reading_kWh": 21.9
     }
   ]
 }
