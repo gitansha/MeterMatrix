@@ -1,16 +1,15 @@
 import requests
 import json
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import time
 from pathlib import Path
 import random
 
-# filepath = "meter_data/readings-feb-08-0031.json"
 directory = "meter_data"
 meterfiles = Path(directory).glob("readings*")
 
-for i in meterfiles:
-    print(i)
+# for i in meterfiles:
+#     print(i)
 
 APIURL = "http://localhost:5000/meter"
 APIURL2GETREADINGS = "http://localhost:5000/getmeterdata"
@@ -27,7 +26,7 @@ if __name__ == "__main__":
         with open(filepath) as f:
             jsonfile = json.load(f)
             reading_list = jsonfile["readings"]
-            with ThreadPoolExecutor(max_workers = 8) as executor:
+            with ProcessPoolExecutor(max_workers = 8) as executor:
                 futures = [executor.submit(packetreader, i) for i in reading_list]
         filecounter += 1
         print(f"Readings for {filepath} all uploaded, this is file {filecounter}")
