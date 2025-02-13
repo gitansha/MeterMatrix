@@ -1,5 +1,6 @@
 from flask import Flask, render_template_string, jsonify, redirect, url_for, request
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 import json
 import pandas as pd
 
@@ -150,13 +151,13 @@ def get_last_half_hour(meterId):
     if meterId not in dailyDB:
         return f"Meter ID {meterId} not found", 404
     
-    now = datetime.now().time()
-    half_hour_ago = (datetime.now() - timedelta(minutes=30)).time()
+    now = datetime.datetime.now().time()
+    half_hour_ago = (datetime.datetime.now() - timedelta(minutes=30)).time()
 
     filtered_data = {
         time_str: value
         for time_str, value in dailyDB[meterId].items()
-        if half_hour_ago <= datetime.strptime(time_str, "%H:%M").time() <= now
+        if half_hour_ago <= datetime.datetime.strptime(time_str, "%H:%M").time() <= now
     }
 
     if not filtered_data:
@@ -253,7 +254,7 @@ def get_consumption(meterId):
 
 def get_current_week_dates():
     """Return a list of date strings for the current week (Monday through Sunday)."""
-    today = datetime.today().date()
+    today = datetime.datetime.today().date()
     start_of_week = today - timedelta(days=today.weekday())  # Monday
     return [(start_of_week + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
 
@@ -271,7 +272,7 @@ def consumption_this_week(meterid):
     for date_str, value in masterDB_dict[meterid].items():
         try:
             # Only process keys that look like dates (YYYY-MM-DD)
-            datetime.strptime(date_str, "%Y-%m-%d")
+            datetime.datetime.strptime(date_str, "%Y-%m-%d")
         except ValueError:
             continue
         if date_str in week_dates:
@@ -361,7 +362,7 @@ def consumption_this_month(meterid):
     if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
 
-    now = datetime.today()
+    now = datetime.datetime.today()
     current_year = now.year
     current_month = now.month
 
@@ -370,7 +371,7 @@ def consumption_this_month(meterid):
     for key, value in masterDB_dict[meterid].items():
         try:
             # Only process keys that follow the date format YYYY-MM-DD
-            dt = datetime.strptime(key, "%Y-%m-%d")
+            dt = datetime.datetime.strptime(key, "%Y-%m-%d")
         except ValueError:
             continue
         if dt.year == current_year and dt.month == current_month:
@@ -462,7 +463,7 @@ def consumption_last_month(meterid):
     if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
 
-    now = datetime.today()
+    now = datetime.datetime.today()
     # Determine last month's year and month (handle January rollover)
     if now.month == 1:
         last_month = 12
@@ -475,7 +476,7 @@ def consumption_last_month(meterid):
     monthly_data = {}
     for key, value in masterDB_dict[meterid].items():
         try:
-            dt = datetime.strptime(key, "%Y-%m-%d")
+            dt = datetime.datetime.strptime(key, "%Y-%m-%d")
         except ValueError:
             continue
         if dt.year == year and dt.month == last_month:
