@@ -1,25 +1,42 @@
 ############################## Imports ##############################
 
-from flask import Flask, jsonify, request, render_template_string, url_for
+from flask import Flask, jsonify, request, render_template_string, url_for, g
 import random
 import datetime
 import json
 from pathlib import Path
+import visualisation_files.management_dashboard as management_dash  # dash file
 
 app = Flask(__name__)
+
+############################### Management Dashboard ###########################
+with app.app_context():
+    # Define Flask context variables to be used in apps.
+    # In this case, we define the dataframe used in the Population app (df)
+    # and the Flask instance to be passed to both apps (cur_app)
+    g.df = pd.read_csv("./visualisation_files/Electricity.csv")
+
+    g.cur_app = app
+
+    # Add Dash app to Flask context. Specify the app's url path and pass the flask server to your data
+    app = management_dash.init_app("/management-dashboard/")
+    # app = population.init_app("/population/")
 
 ############################## New User Code ##############################
 
 new_user_list = ["john A"]
 meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
 
+
 # Function to get users from user.json
 # Load users from users.json
 def load_users():
-    with open('./database/users.json', 'r') as file:
-        return json.load(file) #Return nested dictinory with users and their data
+    with open("users.json", "r") as file:
+        return json.load(file)  # Return nested dictinory with users and their data
+
 
 ############################## Logging Code ##############################
+
 
 class Log:
     def __init__(self, timestamp, request_type, details):
@@ -31,7 +48,8 @@ class Log:
 logs = []
 
 log_dir = Path("./logs")
-log_file_path = log_dir/"logs.txt"
+log_file_path = log_dir / "logs.txt"
+
 
 # Logging Function:
 # Please use this funtion to add the logging details
@@ -46,9 +64,10 @@ def log_request(request_type, details):
 
     with log_file_path.open("a") as log_file:
         log_file.write(f"{log.timestamp} - {log.request_type} - {log.details}\n")
-    
+
 
 ############################## Meter Data Code ##############################
+
 
 class MeterData:
     def __init__(self, id, timestamp, consumption):
@@ -74,7 +93,8 @@ def meterlogging(access_type, meterdata):
             slicedtimestamp = meterdata.timestamp[11:16]
             meter_readings[meterdata.id][slicedtimestamp] = meterdata.consumption
             log_request(
-                "Incoming meter reading", f"Meter reading added for account {meterdata.id}."
+                "Incoming meter reading",
+                f"Meter reading added for account {meterdata.id}.",
             )
         else:
             slicedtimestamp = meterdata.timestamp[11:16]
@@ -88,7 +108,9 @@ def meterlogging(access_type, meterdata):
         # TODO
         pass
 
+
 ############################## APIs ##############################
+
 
 @app.route("/", methods=["GET"])
 def landing():
@@ -102,7 +124,7 @@ def landing():
         </body>
         </html>
         """
-            )
+    )
 
 
 @app.route("/register", methods=["GET"])
@@ -127,7 +149,6 @@ def register():
     )
 
 
-
 @app.route("/register-success", methods=["POST", "GET"])
 def get_meter_id():
     print(request.method)
@@ -138,8 +159,7 @@ def get_meter_id():
         ):  # Is there a scenario where "name" will not be present if the form input for name is required in /register?
             user = request.form["name"]
             new_user_list.append(user)
-            
-            
+
             meter_id = random.randint(1, 1000000000)  # Update this as needed
             while meter_id in meter_id_list:
                 meter_id = random.randint(1, 1000000000)
@@ -179,9 +199,9 @@ def get_meter_id():
     return "Invalid request method."
 
 
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route("/profile", methods=["GET", "POST"])
 def user_login():
-    if request.method == 'GET':
+    if request.method == "GET":
         # Render login form
         return """
             <html>
@@ -195,9 +215,9 @@ def user_login():
                 </body>
             </html>
         """
-    elif request.method == 'POST':
+    elif request.method == "POST":
         # Get meter_id from the form
-        meter_id = request.form.get('meter_id')
+        meter_id = request.form.get("meter_id")
 
         # Load users from JSON
         users = load_users()
@@ -205,21 +225,24 @@ def user_login():
         # Check if meter_id exists in the dictionary
         if (meter_id) in users:
             # Redirect to the profile page
-            log_request(f"User logged in",f"Meter ID : {meter_id} logged in")
-            return render_template_string("""
+            return render_template_string(
+                """
                 <script>
                 window.location.href = '/profile/{{ meter_id }}';
                 </script>
-             """, meter_id=meter_id)
-                
+             """,
+                meter_id=meter_id,
+            )
         else:
             # User not found
-            log_request(f"Error",f"User entered wrong meter ID")
-            return render_template_string("""
+            log_request(f"Error", f"User entered wrong meter ID")
+            return render_template_string(
+                """
                 <p>Error: User not found. Please check your meter ID and try again.</p>
                 <a href="{{ url_for('user_login') }}">Back to login</a>
-            """)
-            
+            """
+            )
+
 
 @app.route("/profile/<meterid>", methods=["GET"])
 def user_profile(meterid):
@@ -229,26 +252,30 @@ def user_profile(meterid):
     # Check if meterID exists in the dictionary
     if (meterid) in users:
         user = users[(meterid)]  # User details
-        log_request(f"Login successful",f"Meter ID : {meterid} logged in successfully")
+        log_request(f"Login successful", f"Meter ID : {meterid} logged in successfully")
 
         # Return the profile page with a button leading to the consumption page
-        return render_template_string("""
+        return render_template_string(
+            """
             <h1>Welcome, {{ name }}!</h1>
             <p>Your Meter ID is: {{ meter_id }}</p>
             <form method="get" action="/profile/{{ meter_id }}/consumption">
                 <input type="submit" value="Go to Consumption">
             </form>
-        """, name=user['name'], meter_id=meterid)
-    
-    
-    
+        """,
+            name=user["name"],
+            meter_id=meterid,
+        )
+
     else:
         # If user is not found, show error message (In case something goes wrong)
-        log_request(f"Login failed",f"Meter ID : {meterid} not in DB")
-        return render_template_string("""
+        log_request(f"Login failed", f"Meter ID : {meterid} not in DB")
+        return render_template_string(
+            """
             <p>Error: User not found. Please check your meter ID and try again.</p>
             <a href="{{ url_for('user_login') }}">Back to login</a>
-        """)
+        """
+        )
 
 
 @app.route("/profile/<meterid>/consumption", methods=["GET"])
@@ -272,12 +299,17 @@ def meterfeed():
     if meterdatajson is None:
         log_request("Failed Meter Reading Request", "Missing meter reading data")
         return "Missing meter data"
-    
+
     else:
-        meterdata = MeterData(meterdatajson["id"], meterdatajson["timestamp"], meterdatajson["reading_kWh"])
+        meterdata = MeterData(
+            meterdatajson["id"],
+            meterdatajson["timestamp"],
+            meterdatajson["reading_kWh"],
+        )
         meterlogging("add", meterdata)
         return "Meter successfully logged"
-    
+
+
 # This is a barebones test API endpoint to extract out current in-memory meter reading data as the server is running. To delete, or maybe keep. Who knows?
 @app.route("/getmeterdata", methods=["GET"])
 def meterdiver():
