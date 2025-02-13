@@ -51,18 +51,21 @@ def log_request(request_type, details):
 ############################## Meter Data Code ##############################
 
 class MeterData:
-    def __init__(self, id, timestamp, consumption):
+    def __init__(self, id, timestamp, reading):
         self.id = id
         self.timestamp = timestamp
-        self.consumption = consumption
+        self.reading = reading
 
 
 # Flushed daily to txt file
 # Backup system reads from this every 2 hours
-# format: {meterid1: {timestamp1: meterdata1.1,
+# format: {meterid1: {prevreading: meterdata,
+#                     timestamp1: meterdata1.1,
 #                    {timestamp2: meterdata1.2},
-#          meterid2: {timestamp1: meterdata2.1,
-#                    {timestamp2: meterdata2.2},}
+#          meterid2: {prevreading: meterdata,
+#                     timestamp1: meterdata2.1,
+#                     timestamp2: meterdata2.2}
+#           }
 
 meter_readings = {}
 
@@ -72,21 +75,27 @@ def meterlogging(access_type, meterdata):
     if access_type == "add":
         if meterdata.id in meter_readings:
             slicedtimestamp = meterdata.timestamp[11:16]
-            meter_readings[meterdata.id][slicedtimestamp] = meterdata.consumption
+            meter_readings[meterdata.id][slicedtimestamp] = meter_readings[meterdata.id]["prevreading"] - meterdata.reading
+            meter_readings[meterdata.id]["prevreading"] = meterdata.reading
             log_request(
                 "Incoming meter reading", f"Meter reading added for account {meterdata.id}."
             )
         else:
             slicedtimestamp = meterdata.timestamp[11:16]
-            meter_readings[meterdata.id] = {slicedtimestamp: meterdata.consumption}
+            meter_readings[meterdata.id] = {"prevreading": meterdata.reading}
+            meter_readings[meterdata.id][slicedtimestamp] = meterdata.reading
             log_request(
                 "Incoming first meter reading",
                 f"First meter reading added for account {meterdata.id}.",
             )
 
-    elif access_type == "backup":
-        # TODO
-        pass
+    elif access_type == "2hrbackup":
+        tempbackuppath = Path("./daily_backup")
+        tempbackup_file_path = tempbackuppath/"hourlybackup.json"
+        tempbackuppath.mkdir(parents=True, exist_ok=True)
+        tempbackup_file_path.touch()
+        with open(tempbackup_file_path, w) as tempf:
+            json.dump(meter_readings, tempf)
 
 ############################## APIs ##############################
 
