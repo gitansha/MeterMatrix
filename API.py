@@ -8,15 +8,18 @@ import json
 from pathlib import Path
 import visualisation_files.management_dashboard as management_dash  # dash file
 import pandas as pd
-import threading
 import subprocess
 import platform
 import multiprocessing
+import sys
 import time # For testing
+
+subprocess.check_call([sys.executable, "-m", "pip", "install", "json-stream"]) # To install json-stream lib
+import json_stream
 
 app = Flask(__name__)
 
-############################### Backup Front-load Codes ###########################
+############################### Backup Codes ###########################
 
 # Locks the thread for running a specific API only while it is being called. (/getmeterdata) for backup
 # Can't get the Lock objects to work in flask. resort to global variable instead
@@ -32,12 +35,42 @@ def execute_backup_script():
     if current_os == "Windows":
         pass
         #subprocess.run('backupper.bat', shell = True)
-    else:
+    else: # Mac and Linux
         subprocess.run('./backupper.sh', shell = True)
 
-backup_process = multiprocessing.Process(target = execute_backup_script)
+def execute_backup_daily_script():
+    current_os = platform.system()
 
-backup_process.start()
+    if current_os == "Windows":
+        pass
+        #subprocess.run('backupper_daily.bat', shell = True)
+    else: # Mac and Linux
+        subprocess.run('./backupper_daily.sh', shell = True)
+
+backup_process = multiprocessing.Process(target = execute_backup_script) 
+backup_daily_process = multiprocessing.Process(target = execute_backup_daily_script)
+
+backup_process.start() # pausing for other test
+backup_daily_process.start()
+
+# For constructing a new .json file
+def backupwriter(new_file_path, uinfo, end = False):
+    if not end:
+        if new_file_path.exists(): # File exists, so will not be first entry, means need a comma in front
+            with open(new_file_path, 'a') as nf:
+                    json_string = json.dumps(uinfo)
+                    json_string = json_string[1:len(json_string)-1] # Get rid of {}
+                    json_string = "," + "\n" + json_string
+                    nf.write(json_string)
+        else:
+            with open(new_file_path, 'w') as nf:
+                json_string = json.dumps(uinfo)
+                json_string = json_string[:len(json_string)-1] # Get rid of }
+                nf.write(json_string)
+    else:
+         with open(new_file_path, 'a') as nf:
+                    end_string = "\n}"
+                    nf.write(end_string)
 
 ############################### Management Dashboard ###########################
 with app.app_context():
@@ -85,10 +118,6 @@ def log_request(request_type, details):
 
 ############################## New User Code ##############################
 
-# new_user_list = ["john A"]
-# meter_id_list = set([random.randint(1, 1000000000) for i in range(40)])
-new_user_dict = {}
-
 
 # Function to get users from user.json
 # Load users from users.json
@@ -128,6 +157,7 @@ class MeterData:
 #           }
 
 meter_readings = {}
+print(meter_readings)
 
 # testing data
 # in memory daily data (to be replaced by actual, test for now)
@@ -851,7 +881,7 @@ def meterfeed():
 
         else:
             meterdata = MeterData(
-                meterdatajson["id"],
+                str(meterdatajson["id"]),
                 meterdatajson["timestamp"],
                 meterdatajson["reading_kWh"],
             )
@@ -866,11 +896,101 @@ def meterfeed():
 def meterdiver():
     global backuplock 
     backuplock = False
-    jsoned_meter_readings = json.dumps(meter_readings)
+    jsoned_meter_readings = json.dumps(meter_readings, indent = 4)
+    
+    #Testing block
     time.sleep(4)
     print("sleep over")
+    #Testing block
+
     backuplock = True
     return jsoned_meter_readings
+
+@app.route("/fullserverbackup", methods=['GET'])
+def dailybackup():
+    global meter_readings
+    global backuplock
+    backuplock = False
+    backup_file_path = Path("./database/data.json")
+    userlist_file_path = Path("./database/users.json")
+    new_backup_file_path = Path("./database/datason.json")
+    grandpa_backup_file_path = Path("./database/datagrandpa.json")
+    if backup_file_path.exists():
+        with open(backup_file_path, "r") as f:
+            data = json_stream.load(f)
+            for key, value in data.items():
+                tempdict = dict(value.items()) # Store values in transient JSON object into temp dict
+                if key in meter_readings: # There is already an entry in existing database, need to add new aggregate value to it
+                    meter_readings[key].pop("prev_reading", None)
+                    daily_consumption = sum(meter_readings[key].values())
+                    tempdict[str(datetime.date.today())] = daily_consumption # Add new data to the packet copy
+                    complete_packet = {key: tempdict}
+                    backupwriter(new_backup_file_path, complete_packet)
+                    meter_readings.pop(key, None) # Remove the key:value pair in meter_readings so what is leftover will be new meter_ids that have no backup before
+                else: # There is no new meter readings for that particular meter_id in backup. So rewrite the old back up data to the new backup data
+                    complete_packet = {key: tempdict}
+                    backupwriter(new_backup_file_path, complete_packet)               
+        
+        # Whatever left over in meter_readings are new meter_ids yet to have been backed up before
+        if meter_readings: # empty dicts return False
+            userdata = load_users()
+            for key, value in meter_readings.items():
+                # Construct format
+                json_packet = {}
+                daily_consumption = sum(meter_readings[key].values())
+                username = userdata[key]["name"]
+                userFIN = userdata[key]["fin_no"]
+                json_packet[key] = {
+                                    "name": username,
+                                    "fin_no": userFIN,
+                                    str(datetime.date.today()): daily_consumption
+                                    }
+                backupwriter(new_backup_file_path, json_packet)
+
+        # Add the } at the end to complete the json file
+        backupwriter(new_backup_file_path, None, True)
+
+        # Flush meter_readings. Should already be empty
+        meter_readings = {}
+        log_request("In-memory Flush", "Backup Done, flushing in-memory data")
+
+        # Replace old back up file with new and move old backup to older backup while deleting oldest backup
+        if grandpa_backup_file_path.exists():
+            grandpa_backup_file_path.unlink()
+            log_request("Deletion of oldest backup", "Grandpa Backup Deleted")
+        backup_file_path.rename(grandpa_backup_file_path)
+        log_request("Backup Rename", "Renamed current backup to Grandpa Backup")
+        new_backup_file_path.rename(backup_file_path)
+        log_request("Backup Rename", "Renamed new (son) backup to current Backup")
+
+    else: # No backup_file exists. Create and populate a new one
+        if meter_readings: # empty dicts return False
+            userdata = load_users()
+            for key, value in meter_readings.items():
+                # Construct format
+                json_packet = {}
+                daily_consumption = sum(meter_readings[key].values())
+                username = userdata[key]["name"]
+                userFIN = userdata[key]["fin_no"]
+                json_packet[key] = {
+                                    "name": username,
+                                    "fin_no": userFIN,
+                                    str(datetime.date.today()): daily_consumption
+                                    }
+                backupwriter(backup_file_path, json_packet)
+
+            # Add the } at the end to complete the json file    
+            backupwriter(backup_file_path, None, True)
+            log_request("Backup Created", "First Backup Done")
+
+            # Flush meter_readings
+            meter_readings = {}
+            log_request("In-memory Flush", "Backup Done, flushing in-memory data")
+
+    backuplock = True
+
+    return "Completed"
+
 
 ############################## Runs the file ##############################
 

@@ -37,6 +37,3 @@ if __name__ == "__main__":
 
     response2 = requests.get(APIURL2GETREADINGS)
     print(response2.text)
-
-    for i in response2.text:
-        print(len(i))
