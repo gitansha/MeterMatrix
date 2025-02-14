@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This file serves to run the hourly backup of the in-memory data by calling the '/getmeterdata' API
+# This file serves to run the 2 hourly backup of the in-memory data by calling the '/getmeterdata' API
 
 if [ ! -d "daily_backup" ]; then
     mkdir "daily_backup"
