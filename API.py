@@ -25,7 +25,7 @@ app = Flask(__name__)
 # Can't get the Lock objects to work in flask. resort to global variable instead
 # backuplock = multiprocessing.Lock()
 # backuplock = threading.Lock()
-backuplock = True
+backuplock = False
 
 # I believe this is a github codespaces constraint as codespaces runs on 1 thread. Therefore I need to split the process out. Normally I believe the server should be able to run a batch/shell file right?
 # Starts running the .bat file upon server start up, which begins the 2 hour backup cycle
@@ -873,7 +873,7 @@ def consumption_last_month(meterid):
 
 @app.route("/meter", methods=["POST"])
 def meterfeed():
-    if backuplock:
+    if not backuplock:
         meterdatajson = request.get_json()
         if meterdatajson is None:
             log_request("Failed Meter Reading Request", "Missing meter reading data")
@@ -895,7 +895,7 @@ def meterfeed():
 @app.route("/getmeterdata", methods=["GET"])
 def meterdiver():
     global backuplock 
-    backuplock = False
+    backuplock = True
     jsoned_meter_readings = json.dumps(meter_readings, indent = 4)
     
     #Testing block
@@ -903,14 +903,14 @@ def meterdiver():
     print("sleep over")
     #Testing block
 
-    backuplock = True
+    backuplock = False
     return jsoned_meter_readings
 
 @app.route("/fullserverbackup", methods=['GET'])
 def dailybackup():
     global meter_readings
     global backuplock
-    backuplock = False
+    backuplock = True
     backup_file_path = Path("./database/data.json")
     userlist_file_path = Path("./database/users.json")
     new_backup_file_path = Path("./database/datason.json")
@@ -987,11 +987,31 @@ def dailybackup():
             meter_readings = {}
             log_request("In-memory Flush", "Backup Done, flushing in-memory data")
 
-    backuplock = True
+    backuplock = False
 
     return "Completed"
 
+# Recovery from backup data
+@app.route("/recovery", methods=["GET"])
+def recovery():
+    global backuplock
+    global meter_readings
+    backuplock = True
+    recovery_file_path = Path("./daily_backup/backup.json")
 
+    if recovery_file_path.exists(): # Check if the backup file exists
+        with open(recovery_file_path, 'r') as rf:
+            recovery_data = json.load(rf)
+            meter_readings = recovery_data
+        log_request("Backup Recovery", "Recovery from daily backup done.")
+        backuplock = True
+        return "Backup Sucessfully Completed"
+    
+    else:
+        log_request("Backup Recovery", "No backup found")
+        backuplock = False
+        return "Backup Failed"
+    
 ############################## Runs the file ##############################
 
 if __name__ == "__main__":
