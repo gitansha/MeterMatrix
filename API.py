@@ -229,7 +229,6 @@ def meterlogging(access_type, meterdata):
             )
 
 
-print(meter_readings, "////////////////////////////////")
 ############################## APIs ##############################
 
 
@@ -957,5 +956,5 @@ def recovery():
 
 if __name__ == "__main__":
     app.run(
-        host="localhost", port=8000, debug=False
+        host="localhost", port=5000, debug=False  ######### change port to 5000
     )  # Changing to False to test process locking
