@@ -1,6 +1,16 @@
 ############################## Imports ##############################
 
-from flask import Flask, jsonify, request, render_template_string, url_for, g, redirect, make_response
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    render_template_string,
+    render_template,
+    url_for,
+    g,
+    redirect,
+    make_response,
+)
 import random
 import datetime
 from datetime import timedelta
@@ -12,9 +22,11 @@ import subprocess
 import platform
 import multiprocessing
 import sys
-import time # For testing
+import time  # For testing
 
-subprocess.check_call([sys.executable, "-m", "pip", "install", "json-stream"]) # To install json-stream lib
+subprocess.check_call(
+    [sys.executable, "-m", "pip", "install", "json-stream"]
+)  # To install json-stream lib
 import json_stream
 
 app = Flask(__name__)
@@ -27,6 +39,7 @@ app = Flask(__name__)
 # backuplock = threading.Lock()
 backuplock = False
 
+
 # I believe this is a github codespaces constraint as codespaces runs on 1 thread. Therefore I need to split the process out. Normally I believe the server should be able to run a batch/shell file right?
 # Starts running the .bat file upon server start up, which begins the 2 hour backup cycle
 def execute_backup_script():
@@ -34,43 +47,49 @@ def execute_backup_script():
 
     if current_os == "Windows":
         pass
-        #subprocess.run('backupper.bat', shell = True)
-    else: # Mac and Linux
-        subprocess.run('./backupper.sh', shell = True)
+        # subprocess.run('backupper.bat', shell = True)
+    else:  # Mac and Linux
+        subprocess.run("./backupper.sh", shell=True)
+
 
 def execute_backup_daily_script():
     current_os = platform.system()
 
     if current_os == "Windows":
         pass
-        #subprocess.run('backupper_daily.bat', shell = True)
-    else: # Mac and Linux
-        subprocess.run('./backupper_daily.sh', shell = True)
+        # subprocess.run('backupper_daily.bat', shell = True)
+    else:  # Mac and Linux
+        subprocess.run("./backupper_daily.sh", shell=True)
 
-backup_process = multiprocessing.Process(target = execute_backup_script) 
-backup_daily_process = multiprocessing.Process(target = execute_backup_daily_script)
 
-backup_process.start() # pausing for other test
+backup_process = multiprocessing.Process(target=execute_backup_script)
+backup_daily_process = multiprocessing.Process(target=execute_backup_daily_script)
+
+backup_process.start()  # pausing for other test
 backup_daily_process.start()
 
+
 # For constructing a new .json file
-def backupwriter(new_file_path, uinfo, end = False):
+def backupwriter(new_file_path, uinfo, end=False):
     if not end:
-        if new_file_path.exists(): # File exists, so will not be first entry, means need a comma in front
-            with open(new_file_path, 'a') as nf:
-                    json_string = json.dumps(uinfo)
-                    json_string = json_string[1:len(json_string)-1] # Get rid of {}
-                    json_string = "," + "\n" + json_string
-                    nf.write(json_string)
-        else:
-            with open(new_file_path, 'w') as nf:
+        if (
+            new_file_path.exists()
+        ):  # File exists, so will not be first entry, means need a comma in front
+            with open(new_file_path, "a") as nf:
                 json_string = json.dumps(uinfo)
-                json_string = json_string[:len(json_string)-1] # Get rid of }
+                json_string = json_string[1 : len(json_string) - 1]  # Get rid of {}
+                json_string = "," + "\n" + json_string
+                nf.write(json_string)
+        else:
+            with open(new_file_path, "w") as nf:
+                json_string = json.dumps(uinfo)
+                json_string = json_string[: len(json_string) - 1]  # Get rid of }
                 nf.write(json_string)
     else:
-         with open(new_file_path, 'a') as nf:
-                    end_string = "\n}"
-                    nf.write(end_string)
+        with open(new_file_path, "a") as nf:
+            end_string = "\n}"
+            nf.write(end_string)
+
 
 ############################### Management Dashboard ###########################
 with app.app_context():
@@ -167,64 +186,16 @@ print(meter_readings)
 # 01:01       4.55       4.55       4.45       4.40       4.53
 # 01:31       4.60       4.60       4.48       4.45       4.56
 
-dailyDB = {
-  "999999999": {
-    "00:31": 4.50, "01:01": 4.55, "01:31": 4.60, "02:01": 4.58, "02:31": 4.62,
-    "03:01": 4.47, "03:31": 4.53, "04:01": 4.48, "04:31": 4.59, "05:01": 4.61,
-    "05:31": 4.50, "06:01": 4.52, "06:31": 4.46, "07:01": 4.49, "07:31": 4.57,
-    "08:01": 4.60, "08:31": 4.54, "09:01": 4.63, "09:31": 4.55, "10:01": 4.50,
-    "10:31": 4.58, "11:01": 4.62, "11:31": 4.47, "12:01": 4.59, "12:31": 4.54,
-    "13:01": 4.51, "13:31": 4.60, "14:01": 4.53, "14:31": 4.48, "15:01": 4.57,
-    "15:31": 4.49, "16:01": 4.61, "16:31": 4.55, "17:01": 4.50, "17:31": 4.46,
-    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58, "22:01":4.6, "prevreading": 7.3
-  },
-  "555555555": {
-    "00:31": 4.50, "01:01": 4.55, "01:31": 4.60, "02:01": 4.58, "02:31": 4.62,
-    "03:01": 4.47, "03:31": 4.53, "04:01": 4.48, "04:31": 4.59, "05:01": 4.61,
-    "05:31": 4.50, "06:01": 4.52, "06:31": 4.46, "07:01": 4.49, "07:31": 4.57,
-    "08:01": 4.60, "08:31": 4.54, "09:01": 4.63, "09:31": 4.55, "10:01": 4.50,
-    "10:31": 4.58, "11:01": 4.62, "11:31": 4.47, "12:01": 4.59, "12:31": 4.54,
-    "13:01": 4.51, "13:31": 4.60, "14:01": 4.53, "14:31": 4.48, "15:01": 4.57,
-    "15:31": 4.49, "16:01": 4.61, "16:31": 4.55, "17:01": 4.50, "17:31": 4.46,
-    "18:01": 4.60, "18:31": 4.52, "19:01": 4.58, "prevreading": 7.3
-  },
-  "111111111": {
-    "00:31": 4.40, "01:01": 4.45, "01:31": 4.48, "02:01": 4.50, "02:31": 4.55,
-    "03:01": 4.43, "03:31": 4.50, "04:01": 4.42, "04:31": 4.51, "05:01": 4.60,
-    "05:31": 4.45, "06:01": 4.48, "06:31": 4.41, "07:01": 4.47, "07:31": 4.50,
-    "08:01": 4.58, "08:31": 4.49, "09:01": 4.57, "09:31": 4.52, "10:01": 4.48,
-    "10:31": 4.55, "11:01": 4.60, "11:31": 4.43, "12:01": 4.52, "12:31": 4.50,
-    "13:01": 4.47, "13:31": 4.55, "14:01": 4.49, "14:31": 4.45, "15:01": 4.53,
-    "15:31": 4.50, "16:01": 4.57, "16:31": 4.49, "17:01": 4.48, "17:31": 4.44,
-    "18:01": 4.55, "18:31": 4.47, "19:01": 4.50, "prevreading": 7.3
-  },
-  "222222222": {
-    "00:31": 4.35, "01:01": 4.40, "01:31": 4.45, "02:01": 4.47, "02:31": 4.50,
-    "03:01": 4.38, "03:31": 4.46, "04:01": 4.35, "04:31": 4.48, "05:01": 4.52,
-    "05:31": 4.44, "06:01": 4.45, "06:31": 4.39, "07:01": 4.41, "07:31": 4.50,
-    "08:01": 4.52, "08:31": 4.48, "09:01": 4.53, "09:31": 4.46, "10:01": 4.43,
-    "10:31": 4.50, "11:01": 4.55, "11:31": 4.40, "12:01": 4.47, "12:31": 4.44,
-    "13:01": 4.41, "13:31": 4.49, "14:01": 4.43, "14:31": 4.38, "15:01": 4.50,
-    "15:31": 4.45, "16:01": 4.52, "16:31": 4.47, "17:01": 4.42, "17:31": 4.40,
-    "18:01": 4.50, "18:31": 4.44, "19:01": 4.48, "prevreading": 7.3
-  },
-  333333333: {
-    "00:31": 4.48, "01:01": 4.53, "01:31": 4.56, "02:01": 4.55, "02:31": 4.60,
-    "03:01": 4.49, "03:31": 4.54, "04:01": 4.50, "04:31": 4.57, "05:01": 4.63,
-    "05:31": 4.53, "06:01": 4.55, "06:31": 4.50, "07:01": 4.52, "07:31": 4.58,
-    "08:01": 4.62, "08:31": 4.57, "09:01": 4.64, "09:31": 4.58, "10:01": 4.55,
-    "10:31": 4.60, "11:01": 4.65, "11:31": 4.52, "12:01": 4.60, "12:31": 4.56,
-    "13:01": 4.53, "13:31": 4.62, "14:01": 4.55, "14:31": 4.50, "15:01": 4.60,
-    "15:31": 4.53, "16:01": 4.65, "16:31": 4.58, "17:01": 4.55, "17:31": 4.50,
-    "18:01": 4.62, "18:31": 4.55, "19:01": 4.60, "prevreading": 7.3
-  }
-}
-def remove_prevreading(dailyDB):
-    for key in dailyDB:
-        dailyDB[key].pop("prevreading", None)  # Remove "prevreading" if it exists
-    return dailyDB
 
-dailyDB = remove_prevreading(dailyDB)
+def remove_prevreading(meter_readings):
+    for key in meter_readings:
+        meter_readings[key].pop(
+            "prevreading", None
+        )  # Remove "prevreading" if it exists
+    return meter_readings
+
+
+# meter_readings = remove_prevreading(meter_readings)
 
 # reading master database
 # format
@@ -234,12 +205,15 @@ dailyDB = remove_prevreading(dailyDB)
 with open("testing_data/masterDB.json", "r") as file:
     masterDB_dict = json.load(file)
 
+
 # access_type either "add" or "backup"
 def meterlogging(access_type, meterdata):
     if access_type == "add":
         if meterdata.id in meter_readings:
             slicedtimestamp = meterdata.timestamp[11:16]
-            meter_readings[meterdata.id][slicedtimestamp] = round((meterdata.reading - meter_readings[meterdata.id]["prevreading"]),2)
+            meter_readings[meterdata.id][slicedtimestamp] = round(
+                (meterdata.reading - meter_readings[meterdata.id]["prevreading"]), 2
+            )
             meter_readings[meterdata.id]["prevreading"] = meterdata.reading
             log_request(
                 "Incoming meter reading",
@@ -255,44 +229,18 @@ def meterlogging(access_type, meterdata):
             )
 
 
+print(meter_readings, "////////////////////////////////")
 ############################## APIs ##############################
 
 
 @app.route("/", methods=["GET"])
 def landing():
-    return render_template_string(
-        """
-        <html>
-        <body>
-            <h1>Welcome to Meter Registration</h1>
-            <button onclick="location.href='/register'">Register</button>
-            <button onclick="location.href='/profile'">Login</button>
-        </body>
-        </html>
-        """
-    )
+    return render_template("main.html")
 
 
 @app.route("/register", methods=["GET"])
 def register():
-    return render_template_string(
-        """
-        <html>
-        <body>
-            <h2>Register for a Meter</h2>
-            <form action="/register-success" method="post">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-                <br>
-                <label for="fin">FIN:</label>
-                <input type="text" id="fin" name="fin" required>
-                <br>
-                <input type="submit" value="Register">
-            </form>
-        </body>
-        </html>
-        """
-    )
+    return render_template("register.html")
 
 
 @app.route("/register-success", methods=["POST", "GET"])
@@ -304,7 +252,7 @@ def get_meter_id():
             "name" in request.form
         ):  # Is there a scenario where "name" will not be present if the form input for name is required in /register?
             user = request.form["name"]
-            fin = request.form["fin"]
+            fin = request.form["fin"].upper()
             db = load_users()
             meter_id = random.randint(
                 1, 1000000000
@@ -319,19 +267,8 @@ def get_meter_id():
                 "add_meter_reading",
                 f"Meter reading account added for user {user} with FIN no. {fin} account {meter_id}.",
             )
-            return render_template_string(
-                """
-                <p>Hi {{ user }}, your login ID is {{ meter_id }}.</p>
-                <p>You will be redirected to main page in 10 seconds.</p>
-                <p>Use this id to view your electricity consumption.</p>
-                <button onclick="window.location.href='/profile'">Go to Login</button>
-                <button onclick="window.location.href='/profile/{{ meter_id }}/consumption'">View Electricity Consumption</button>
-                <script>
-                    setTimeout(function() {
-                        window.location.href = "{{ url_for('landing') }}";
-                    }, 10000);  // Redirect after 10 seconds
-                </script>
-            """,
+            return render_template(
+                "register_success.html",
                 user=user,
                 meter_id=meter_id,
             )
@@ -353,18 +290,8 @@ def get_meter_id():
 def user_login():
     if request.method == "GET":
         # Render login form
-        return """
-            <html>
-                <body>
-                    <h2>User Login</h2>
-                    <form method="POST" action="/profile">
-                        <label for="meter_id">Enter your Meter ID:</label>
-                        <input type="text" id="meter_id" name="meter_id" required>
-                        <input type="submit" value="Login">
-                    </form>
-                </body>
-            </html>
-        """
+        return render_template("profile.html")
+
     elif request.method == "POST":
         # Get meter_id from the form
         meter_id = request.form.get("meter_id")
@@ -420,6 +347,7 @@ def user_profile(meterid):
             """
         )
 
+
 @app.route("/profile/<meterid>/consumption/", methods=["GET"])
 def profile_home(meterid):
     # The JavaScript now simply redirects for any selected value.
@@ -444,27 +372,28 @@ def profile_home(meterid):
         <label for="dropdown">Pick Time Period:</label>
         <select id="dropdown" onchange="handleButtonClick(this.value)">
             <option value="">Select</option>
-            <option value="last_half_hour">Previous Half Hour</option>
+            <option value="last-half-hour">Previous Half Hour</option>
             <option value="today">Today</option>
-            <option value="this_week">This Week</option>
-            <option value="this_month">This Month</option>
-            <option value="last_month">Last Month</option>
+            <option value="current-week">Current Week</option>
+            <option value="current-month">Current Month</option>
+            <option value="last-month">Last Month</option>
         </select>
     </body>
     </html>
     """
 
-@app.route("/profile/<meterId>/consumption/last_half_hour", methods=["GET"])
+
+@app.route("/profile/<meterId>/consumption/last-half-hour", methods=["GET"])
 def get_last_half_hour(meterId):
-    if meterId not in dailyDB:
+    if meterId not in meter_readings:
         return f"Meter ID {meterId} not found", 404
-    
+
     now = datetime.datetime.now().time()
     half_hour_ago = (datetime.datetime.now() - timedelta(minutes=30)).time()
 
     filtered_data = {
         time_str: value
-        for time_str, value in dailyDB[meterId].items()
+        for time_str, value in meter_readings[meterId].items()
         if half_hour_ago <= datetime.datetime.strptime(time_str, "%H:%M").time() <= now
     }
 
@@ -497,15 +426,16 @@ def get_last_half_hour(meterId):
 
 @app.route("/profile/<meterId>/consumption/today", methods=["GET"])
 def get_consumption(meterId):
-    if meterId not in dailyDB:
+    if meterId not in meter_readings:
         return f"Meter ID {meterId} not found", 404
 
-    data = dailyDB[meterId]
+    data = meter_readings[meterId]
     table_html = """
     <html>
     <head>
         <title>Consumption Data</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='visualisation_files/styles.css') }}">
         <style>
             table { width: 50%%; border-collapse: collapse; }
             th, td { border: 1px solid black; padding: 8px; text-align: left; }
@@ -567,7 +497,7 @@ def get_current_week_dates():
     return [(start_of_week + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
 
 
-@app.route("/profile/<meterid>/consumption/this_week", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/current-week", methods=["GET"])
 def consumption_this_week(meterid):
     if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
@@ -665,7 +595,7 @@ def consumption_this_week(meterid):
     return render_template_string(table_html)
 
 
-@app.route("/profile/<meterid>/consumption/this_month", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/current-month", methods=["GET"])
 def consumption_this_month(meterid):
     if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
@@ -766,7 +696,7 @@ def consumption_this_month(meterid):
     return render_template_string(html_template)
 
 
-@app.route("/profile/<meterid>/consumption/last_month", methods=["GET"])
+@app.route("/profile/<meterid>/consumption/last-month", methods=["GET"])
 def consumption_last_month(meterid):
     if meterid not in masterDB_dict:
         return f"Meter ID {meterid} not found", 404
@@ -894,19 +824,20 @@ def meterfeed():
 # For backup
 @app.route("/getmeterdata", methods=["GET"])
 def meterdiver():
-    global backuplock 
+    global backuplock
     backuplock = True
-    jsoned_meter_readings = json.dumps(meter_readings, indent = 4)
-    
-    #Testing block
+    jsoned_meter_readings = json.dumps(meter_readings, indent=4)
+
+    # Testing block
     time.sleep(4)
     print("sleep over")
-    #Testing block
+    # Testing block
 
     backuplock = False
     return jsoned_meter_readings
 
-@app.route("/fullserverbackup", methods=['GET'])
+
+@app.route("/fullserverbackup", methods=["GET"])
 def dailybackup():
     global meter_readings
     global backuplock
@@ -919,20 +850,28 @@ def dailybackup():
         with open(backup_file_path, "r") as f:
             data = json_stream.load(f)
             for key, value in data.items():
-                tempdict = dict(value.items()) # Store values in transient JSON object into temp dict
-                if key in meter_readings: # There is already an entry in existing database, need to add new aggregate value to it
+                tempdict = dict(
+                    value.items()
+                )  # Store values in transient JSON object into temp dict
+                if (
+                    key in meter_readings
+                ):  # There is already an entry in existing database, need to add new aggregate value to it
                     meter_readings[key].pop("prev_reading", None)
                     daily_consumption = sum(meter_readings[key].values())
-                    tempdict[str(datetime.date.today())] = daily_consumption # Add new data to the packet copy
+                    tempdict[str(datetime.date.today())] = (
+                        daily_consumption  # Add new data to the packet copy
+                    )
                     complete_packet = {key: tempdict}
                     backupwriter(new_backup_file_path, complete_packet)
-                    meter_readings.pop(key, None) # Remove the key:value pair in meter_readings so what is leftover will be new meter_ids that have no backup before
-                else: # There is no new meter readings for that particular meter_id in backup. So rewrite the old back up data to the new backup data
+                    meter_readings.pop(
+                        key, None
+                    )  # Remove the key:value pair in meter_readings so what is leftover will be new meter_ids that have no backup before
+                else:  # There is no new meter readings for that particular meter_id in backup. So rewrite the old back up data to the new backup data
                     complete_packet = {key: tempdict}
-                    backupwriter(new_backup_file_path, complete_packet)               
-        
+                    backupwriter(new_backup_file_path, complete_packet)
+
         # Whatever left over in meter_readings are new meter_ids yet to have been backed up before
-        if meter_readings: # empty dicts return False
+        if meter_readings:  # empty dicts return False
             userdata = load_users()
             for key, value in meter_readings.items():
                 # Construct format
@@ -941,10 +880,10 @@ def dailybackup():
                 username = userdata[key]["name"]
                 userFIN = userdata[key]["fin_no"]
                 json_packet[key] = {
-                                    "name": username,
-                                    "fin_no": userFIN,
-                                    str(datetime.date.today()): daily_consumption
-                                    }
+                    "name": username,
+                    "fin_no": userFIN,
+                    str(datetime.date.today()): daily_consumption,
+                }
                 backupwriter(new_backup_file_path, json_packet)
 
         # Add the } at the end to complete the json file
@@ -963,8 +902,8 @@ def dailybackup():
         new_backup_file_path.rename(backup_file_path)
         log_request("Backup Rename", "Renamed new (son) backup to current Backup")
 
-    else: # No backup_file exists. Create and populate a new one
-        if meter_readings: # empty dicts return False
+    else:  # No backup_file exists. Create and populate a new one
+        if meter_readings:  # empty dicts return False
             userdata = load_users()
             for key, value in meter_readings.items():
                 # Construct format
@@ -973,13 +912,13 @@ def dailybackup():
                 username = userdata[key]["name"]
                 userFIN = userdata[key]["fin_no"]
                 json_packet[key] = {
-                                    "name": username,
-                                    "fin_no": userFIN,
-                                    str(datetime.date.today()): daily_consumption
-                                    }
+                    "name": username,
+                    "fin_no": userFIN,
+                    str(datetime.date.today()): daily_consumption,
+                }
                 backupwriter(backup_file_path, json_packet)
 
-            # Add the } at the end to complete the json file    
+            # Add the } at the end to complete the json file
             backupwriter(backup_file_path, None, True)
             log_request("Backup Created", "First Backup Done")
 
@@ -991,6 +930,7 @@ def dailybackup():
 
     return "Completed"
 
+
 # Recovery from backup data
 @app.route("/recovery", methods=["GET"])
 def recovery():
@@ -999,20 +939,23 @@ def recovery():
     backuplock = True
     recovery_file_path = Path("./daily_backup/backup.json")
 
-    if recovery_file_path.exists(): # Check if the backup file exists
-        with open(recovery_file_path, 'r') as rf:
+    if recovery_file_path.exists():  # Check if the backup file exists
+        with open(recovery_file_path, "r") as rf:
             recovery_data = json.load(rf)
             meter_readings = recovery_data
         log_request("Backup Recovery", "Recovery from daily backup done.")
         backuplock = True
         return "Backup Sucessfully Completed"
-    
+
     else:
         log_request("Backup Recovery", "No backup found")
         backuplock = False
         return "Backup Failed"
-    
+
+
 ############################## Runs the file ##############################
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=5000, debug=False) # Changing to False to test process locking
+    app.run(
+        host="localhost", port=8000, debug=False
+    )  # Changing to False to test process locking

@@ -1,0 +1,43 @@
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Meter Registration Form</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+    <main class="container">
+        <div class="welcome-container">
+            <h1>Welcome!</h1>
+            
+            <p>Hi {{ user }}, your login ID is {{ meter_id }}.</p>
+            <p>Use this ID to view your electricity consumption.</p>
+            
+            <p class="redirect-timer">You will be redirected to main page in <span id="countdown">10</span> seconds.</p>
+            
+            <div class="action-buttons">
+                <a href="/profile" class="button">Go to Login</a>
+                <a href="/profile/{{ meter_id }}/consumption" class="button">View Electricity Consumption</a>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Countdown timer
+    let timeLeft = 10;
+    const countdownElement = document.getElementById('countdown');
+    
+    const timer = setInterval(function() {
+        timeLeft--;
+        countdownElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            window.location.href = "{{ url_for('landing') }}";
+        }
+    }, 1000);
+    </script>
+    </main>
+    <footer>
+        <p>&copy; 2025 MeterMatrix.<br> All rights reserved with AN6007 Grp 01.</p>
+    </footer>
+</body>
+        
