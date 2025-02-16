@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+    </head>
+    <body>
+        <main class="container">
+            <div class="welcome-container">
+                <h2>User Login</h2>
+                <form method="POST" action="/profile">
+                    <label for="meter_id">Enter your Meter ID:</label>
+                    <input type="text" id="meter_id" name="meter_id" required>
+                    <button type="submit" class="button">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </main>
+        <footer>
+            <p>&copy; 2025 MeterMatrix.<br> All rights reserved with AN6007 Grp 01.</p>
+        </footer>
+    </body>
+</html>
+    

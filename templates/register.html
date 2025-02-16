@@ -1,0 +1,53 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meter Registration Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main class="container">
+        <section class="registration-section">
+            <h1>Register for a Meter</h1>
+            <form action="/register-success" method="post" class="registration-form">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        required 
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                        minlength="2"
+                        maxlength="100"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="fin">FIN Number:</label>
+                    <input 
+                        type="text" 
+                        id="fin" 
+                        name="fin" 
+                        required 
+                        placeholder="Enter your FIN number"
+                        pattern="[A-Za-z0-9]+"
+                        title="FIN number should only contain letters and numbers"
+                        maxlength="9"
+                        minlength="9"
+                    >
+                </div>
+                <center>
+                <button type="submit" class="button">
+                    Register Now
+                </button>
+                </center>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 MeterMatrix.<br> All rights reserved with AN6007 Grp 01.</p>
+    </footer>
+</body>
+</html>
