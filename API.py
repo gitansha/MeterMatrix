@@ -326,14 +326,8 @@ def user_profile(meterid):
     if meterid in users:
         user = users[meterid]
         log_request("Login successful", f"Meter ID : {meterid} logged in successfully")
-        return render_template_string(
-            """
-            <h1>Welcome, {{ name }}!</h1>
-            <p>Your Meter ID is: {{ meter_id }}</p>
-            <form method="get" action="{{ url_for('profile_home', meterid=meter_id) }}">
-                <input type="submit" value="Go to Consumption">
-            </form>
-            """,
+        return render_template(
+            "profile_meter_id.html",
             name=user["name"],
             meter_id=meterid,
         )
