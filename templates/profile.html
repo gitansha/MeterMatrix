@@ -9,7 +9,17 @@
                 <h2>User Login</h2>
                 <form method="POST" action="/profile">
                     <label for="meter_id">Enter your Meter ID:</label>
-                    <input type="text" id="meter_id" name="meter_id" required>
+                    <input 
+                        type="text" 
+                        id="meter_id" 
+                        name="meter_id" 
+                        required 
+                        maxlength="9" 
+                        minlength="9"
+                        pattern="[0-9]{9}"
+                        inputmode="numeric"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        title="Please enter your login id">
                     <button type="submit" class="button">
                         Login
                     </button>
