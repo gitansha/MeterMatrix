@@ -344,36 +344,7 @@ def user_profile(meterid):
 @app.route("/profile/<meterid>/consumption/", methods=["GET"])
 def profile_home(meterid):
     # The JavaScript now simply redirects for any selected value.
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Profile Consumption</title>
-        <script>
-            function handleButtonClick(value) {{
-                if (value) {{
-                    // Redirect to the appropriate endpoint
-                    window.location.href = `/profile/{meterid}/consumption/${{value}}`;
-                }}
-            }}
-        </script>
-    </head>
-    <body>
-        <h1>Welcome to your profile, Meter ID: {meterid}</h1>
-        <label for="dropdown">Pick Time Period:</label>
-        <select id="dropdown" onchange="handleButtonClick(this.value)">
-            <option value="">Select</option>
-            <option value="last-half-hour">Previous Half Hour</option>
-            <option value="today">Today</option>
-            <option value="current-week">Current Week</option>
-            <option value="current-month">Current Month</option>
-            <option value="last-month">Last Month</option>
-        </select>
-    </body>
-    </html>
-    """
+    return render_template("profile_home.html", meterid=meterid)
 
 
 @app.route("/profile/<meterId>/consumption/last-half-hour", methods=["GET"])
