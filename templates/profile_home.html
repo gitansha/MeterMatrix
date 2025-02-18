@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Consumption</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-container">
+            <h1>Welcome to your profile</h1>
+            <p>Meter ID: <strong>{{ meterid }}</strong></p>
+            
+            <form>
+                <label for="dropdown">Pick Time Period:</label>
+                <select 
+                    id="dropdown" 
+                    onchange="handleButtonClick(this.value)"
+                    style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                    <option value="">Select</option>
+                    <option value="last-half-hour">Previous Half Hour</option>
+                    <option value="today">Today</option>
+                    <option value="current-week">Current Week</option>
+                    <option value="current-month">Current Month</option>
+                    <option value="last-month">Last Month</option>
+                </select>
+            </form>
+
+            <div class="action-buttons">
+                <a href="/profile" class="button">Back to Profile</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 MeterMatrix.<br> All rights reserved with AN6007 Grp 01.</p>
+    </footer>
+
+    <script>
+        function handleButtonClick(value) {
+            if (value) {
+                window.location.href = `/profile/{{ meterid }}/consumption/${value}`;
+            }
+        }
+    </script>
+</body>
+</html>
