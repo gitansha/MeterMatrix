@@ -6,7 +6,6 @@ from flask import (
     request,
     render_template_string,
     render_template,
-    url_for,
     g,
     redirect,
     make_response,
@@ -22,7 +21,10 @@ import subprocess
 import platform
 import multiprocessing
 import sys
-import time  # For testing
+import time
+
+
+# For testing
 
 subprocess.check_call(
     [sys.executable, "-m", "pip", "install", "json-stream"]
@@ -314,8 +316,14 @@ def user_login():
             log_request(f"Error", f"User entered wrong meter ID")
             return render_template_string(
                 """
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+                </head>
+                <body>
                 <p>Error: User not found. Please check your meter ID and try again.</p>
-                <a href="{{ url_for('user_login') }}">Back to login</a>
+                <a href="{{ url_for('user_login') }}" class = "button">Back to login</a>
+                </body>
             """
             )
 
@@ -335,8 +343,14 @@ def user_profile(meterid):
         log_request("Login failed", f"Meter ID : {meterid} not in DB")
         return render_template_string(
             """
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+            </head>
+            <body>
             <p>Error: User not found. Please check your meter ID and try again.</p>
-            <a href="{{ url_for('user_login') }}">Back to login</a>
+            <a href="{{ url_for('user_login') }}"  class = "button">Back to login</a>
+            </body>
             """
         )
 
