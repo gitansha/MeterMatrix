@@ -139,7 +139,7 @@ Overall,
 | `/management-dashboard/`                            | Management dashboard to view the region wise consumption                                          |
 
 
-## How to run the file
+## How to run the file locally and install required libraries
 1. Create a vitual env by going to the desired directory and doing `pip install virtualenv` followed by `virtualenv venv`.
 2. Activate the env using the initially going to the directory using cd
     eg: 'cd <location to git repo>/venv/Scripts'

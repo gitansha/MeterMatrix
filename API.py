@@ -6,7 +6,7 @@ from flask import (
     request,
     render_template_string,
     render_template,
-    g,
+    g, # management dashboard
     redirect,
     make_response,
 )
@@ -36,20 +36,16 @@ app = Flask(__name__)
 ############################### Backup Codes ###########################
 
 # Locks the thread for running a specific API only while it is being called. (/getmeterdata) for backup
-# Can't get the Lock objects to work in flask. resort to global variable instead
-# backuplock = multiprocessing.Lock()
-# backuplock = threading.Lock()
 backuplock = False
 
 
-# I believe this is a github codespaces constraint as codespaces runs on 1 thread. Therefore I need to split the process out. Normally I believe the server should be able to run a batch/shell file right?
 # Starts running the .bat file upon server start up, which begins the 2 hour backup cycle
+# Batch files run 30s (= 2hrs in real implementation) for testing purposes
 def execute_backup_script():
     current_os = platform.system()
 
     if current_os == "Windows":
-        pass
-        # subprocess.run('backupper.bat', shell = True)
+        subprocess.run('backupper.bat', shell = True)
     else:  # Mac and Linux
         subprocess.run("./backupper.sh", shell=True)
 
@@ -58,8 +54,7 @@ def execute_backup_daily_script():
     current_os = platform.system()
 
     if current_os == "Windows":
-        pass
-        # subprocess.run('backupper_daily.bat', shell = True)
+        subprocess.run('backupper_daily.bat', shell = True)
     else:  # Mac and Linux
         subprocess.run("./backupper_daily.sh", shell=True)
 
@@ -95,14 +90,12 @@ def backupwriter(new_file_path, uinfo, end=False):
 
 ############################### Management Dashboard ###########################
 with app.app_context():
-    # Define Flask context variables to be used in apps.
-    # In this case, we define the dataframe used in the Population app (df)
-    # and the Flask instance to be passed to both apps (cur_app)
+
     g.df = pd.read_csv("./visualisation_files/Electricity.csv")
 
     g.cur_app = app
 
-    # Add Dash app to Flask context. Specify the app's url path and pass the flask server to your data
+    # dash app is served into the Flask app
     app = management_dash.init_app("/management-dashboard/")
 
 
@@ -123,8 +116,6 @@ log_file_path = log_dir / "logs.txt"
 
 
 # Logging Function:
-# Please use this funtion to add the logging details
-# see the usage in get_meter_id function
 def log_request(request_type, details):
     log = Log(datetime.datetime.now(), request_type, details)
     logs.append(log)
@@ -154,7 +145,6 @@ def save_db(data, filename="database/data.json"):
         "Updated database",
         f"{filename.split('/')[-1].split('.')[0]} database rewritten",
     )
-    # print(f"Generated {filename}")
 
 
 ############################## Meter Data Code ##############################
@@ -177,9 +167,6 @@ class MeterData:
 #                     timestamp2: meterdata2.2}
 #           }
 
-# comment out later
-# meter_readings = {}
-
 # testing data
 # in memory daily data (to be replaced by actual, test for now)
 # df format
@@ -189,7 +176,7 @@ class MeterData:
 # 01:31       4.60       4.60       4.48       4.45       4.56
 meter_readings = {}
 
-# testing data
+# testing data (used for Demo purposes)
 # in memory daily data (to be replaced by actual, test for now)
 # df format
 #           999999999  555555555  111111111  222222222  333333333
@@ -264,7 +251,6 @@ dailyDB = remove_prevreading(dailyDB)
 with open("testing_data/masterDB.json", "r") as file:
     masterDB_dict = json.load(file)
 
-
 # access_type either "add" or "backup"
 def meterlogging(access_type, meterdata):
     if access_type == "add":
@@ -287,9 +273,7 @@ def meterlogging(access_type, meterdata):
                 f"First meter reading added for account {meterdata.id}.",
             )
 
-
 ############################## APIs ##############################
-
 
 @app.route("/", methods=["GET"])
 def landing():
@@ -308,7 +292,7 @@ def get_meter_id():
         print("Form data:", request.form)
         if (
             "name" in request.form
-        ):  # Is there a scenario where "name" will not be present if the form input for name is required in /register?
+        ): 
             user = request.form["name"]
             fin = request.form["fin"].upper()
             db = load_users()
@@ -317,7 +301,6 @@ def get_meter_id():
             )  # checking that meter id doesn't get duplicated
             while meter_id in db.keys():
                 meter_id = random.randint(1, 1000000000)
-            # ---------------- TODO:: Add the user to the main db during server shutdown-----------
             db[meter_id] = {"name": user, "fin_no": fin}
             save_db(db, "database/users.json")
 
@@ -337,7 +320,7 @@ def get_meter_id():
             )
             return "Name not found in form data."
 
-    elif request.method == "GET":  # How will this scenario happen?
+    elif request.method == "GET":  
         log_request("ERROR : in add_meter_reading", f"Request method recieved as GET")
         return "Please submit the form to register."
     log_request("ERROR : INVALID REQUEST METHOD")
@@ -861,11 +844,6 @@ def meterdiver():
     backuplock = True
     jsoned_meter_readings = json.dumps(meter_readings, indent=4)
 
-    # Testing block
-    time.sleep(4)
-    print("sleep over")
-    # Testing block
-
     backuplock = False
     return jsoned_meter_readings
 
@@ -991,4 +969,4 @@ def recovery():
 if __name__ == "__main__":
     app.run(
         host="localhost", port=5000, debug=False  ######### change port to 5000
-    )  # Changing to False to test process locking
+    ) 

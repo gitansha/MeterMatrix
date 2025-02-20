@@ -1,5 +1,5 @@
+json-stream
+flask
 dash
 plotly
 pandas
-pdfkit
-weaasyprint
