@@ -134,13 +134,9 @@ Overall,
 | `/profile/{meterId}`                               | Landing page for that particular meter ID.                                                        |
 | `/profile/{meterId}/consumption`                   | Displays consumption details for the meter ID.                                                     |
 | `/profile/{meterId}/consumption?period=...`        | Query data by time period (e.g., `prev-hr`, `current-day`, `current-week`, `current-month`, `prev-month`) and also show graphs. |
-| `/profile/{meterId}/consumption/download`          | User can download their bill for the selected time period.                                        |
 | `/meter`                                           | Meter accesses this API and sends a JSON packet consisting of its ID, consumption in the previous half hour, and timestamp. |
 | **Example:** `/profile/999-999-999`                 | This is an example of how to query a specific meter's profile.                                    |
 | `/management-dashboard/`                            | Management dashboard to view the region wise consumption                                          |
-
-
-
 
 
 ## How to run the file
@@ -153,6 +149,12 @@ Overall,
 3. to install the libraries, get out of the venv and back to the root folder and do a `pip install -r requirements.txt` (one time requirment only)
     (Also this is for windows, Sorry Mac Users)
 4. To check if you got the required poackages, do a `pip list`.
-5. Now run the file normally using python ./file_name.py
+
+## How to run the Server
+1.  Run `python API.py`.
+2.	Open in local host browser.
+3.	For user login use ‘999999999’ for testing purposes. Can refer to file `testing_data/masterDB.json` to refer to test data.
+4.	To check management dashboard: Add `/management-dashboard/` at the end of the link of landing page
+5.	For meter and backup: Make sure API.py is running first and then run `meterlogger.py `
 
 
