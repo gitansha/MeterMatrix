@@ -968,5 +968,5 @@ def recovery():
 
 if __name__ == "__main__":
     app.run(
-        port=5000, debug=False  ######### change port to 5000
+        port=5000  ######### change port to 5000
     ) 
